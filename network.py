@@ -39,3 +39,18 @@ if __name__ == "__main__":
 
     dbfnodes_to_csv(inputn_dbf, outputn_csv)
     print(f"Converted nodes '{inputn_dbf}' to '{outputn_csv}' successfully.")
+
+import pandas as pd
+
+# Load the CSV file into a DataFrame
+df = pd.read_csv('links.csv')
+
+# Define the columns you want to keep
+new_order = ['ID', 'RTE_NAME', 'A', 'B', 'DIR', 'DISTANCE', 'FACTYPE', 'CAP_R', 'FFSPEED_R', 'LANES']  # Replace with your desired columns
+
+# Drop columns that are not in the new order
+df = df[new_order]
+
+# Save the modified DataFrame back to the same CSV file
+df.to_csv('links.csv', index=False)
+
