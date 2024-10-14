@@ -1,4 +1,4 @@
-ID,RTE_NAME,A,B,DIR,DISTANCE,FACTYPE,CAP_R,FFSPEED_R,LANES
+link_id,name,from_node_id,to_node_id,directed,length,facility_type,capacity,free_speed,lanes
 1,,1,5500,0,9e-05,11,0,0,0
 2,,2,5472,0,0.6746,11,0,0,0
 3,,3,4469,0,0.12094,11,0,0,0

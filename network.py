@@ -54,3 +54,26 @@ df = df[new_order]
 # Save the modified DataFrame back to the same CSV file
 df.to_csv('links.csv', index=False)
 
+import pandas as pd
+
+# Step 1: Read the CSV file
+df = pd.read_csv('links.csv')
+
+# Step 2: Rename the columns
+# For example, if you want to rename 'old_name1' to 'new_name1' and 'old_name2' to 'new_name2':
+df.rename(columns={'ID': 'link_id', 'RTE_NAME': 'name', 'A': 'from_node_id', 'B': 'to_node_id', 'DIR': 'directed', 'DISTANCE': 'length', 'FACTYPE': 'facility_type', 'CAP_R': 'capacity', 'FFSPEED_R': 'free_speed', 'LANES': 'lanes'}, inplace=True)
+
+# Step 3: Save the modified DataFrame back to a CSV file
+df.to_csv('links.csv', index=False)
+
+import pandas as pd
+
+# Step 1: Read the CSV file
+df = pd.read_csv('nodes.csv')
+
+# Step 2: Rename the columns
+# For example, if you want to rename 'old_name1' to 'new_name1' and 'old_name2' to 'new_name2':
+df.rename(columns={'N': 'node_id', 'X': 'x_coord', 'Y': 'y_coord'}, inplace=True)
+
+# Step 3: Save the modified DataFrame back to a CSV file
+df.to_csv('nodes.csv', index=False)
