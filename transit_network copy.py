@@ -11,9 +11,16 @@ gtfs_output_dir = '89780'
 print(f"Reading exporting files to '{gtfs_output_dir}'")
 
 
+try:
+    gg= GTFS2GMNS(gtfs_input_dir, time_period,date_period,gtfs_output_dir,isSaveToCSV = True)
 
-GTFS2GMNS(gtfs_input_dir, time_period,date_period,gtfs_output_dir,isSaveToCSV = True)
+except Exception as e:
+    print(f"an error occurred: {e}")
 
 
 
 
+import gtfs2gmns as gg
+path = 'gtfs'
+gmns_path = '.'
+gg.agency
