@@ -46,7 +46,7 @@ import pandas as pd
 df = pd.read_csv('links.csv')
 
 # Define the columns you want to keep
-new_order = ['ID', 'RTE_NAME', 'A', 'B', 'DIR', 'DISTANCE', 'FACTYPE', 'CAP_R', 'FFSPEED_R', 'LANES']  # Replace with your desired columns
+new_order = ['ID', 'RTE_NAME', 'A', 'B', 'DIR', 'DISTANCE', 'FACTYPE', 'CAP_R', 'FFSPEED_R', 'LANES', 'BIKE_FAC']  # Replace with your desired columns
 
 # Drop columns that are not in the new order
 df = df[new_order]
@@ -61,7 +61,7 @@ df = pd.read_csv('links.csv')
 
 # Step 2: Rename the columns
 # For example, if you want to rename 'old_name1' to 'new_name1' and 'old_name2' to 'new_name2':
-df.rename(columns={'ID': 'link_id', 'RTE_NAME': 'name', 'A': 'from_node_id', 'B': 'to_node_id', 'DIR': 'directed', 'DISTANCE': 'length', 'FACTYPE': 'facility_type', 'CAP_R': 'capacity', 'FFSPEED_R': 'free_speed', 'LANES': 'lanes'}, inplace=True)
+df.rename(columns={'ID': 'link_id', 'RTE_NAME': 'name', 'A': 'from_node_id', 'B': 'to_node_id', 'DIR': 'directed', 'DISTANCE': 'length', 'FACTYPE': 'facility_type', 'CAP_R': 'capacity', 'FFSPEED_R': 'free_speed', 'LANES': 'lanes', 'BIKE_FAC': 'bike_facility'}, inplace=True)
 
 # Step 3: Save the modified DataFrame back to a CSV file
 df.to_csv('links.csv', index=False)
