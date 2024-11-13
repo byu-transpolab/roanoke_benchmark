@@ -80,18 +80,22 @@ def dbfnodes_to_csv(dbf_file, csv_file):
     df.to_csv('nodes.csv', index=False)
 
 
+
+
+
 if __name__ == "__main__":
     
     # read in highway network and write out csv file
-    input_dbf = 'highway.dbf'  # Replace with your DBF file path
-    output_csv = 'links.csv'  # Replace with your desired CSV file path
+    input_dbf = 'highway.dbf'   # Replace with your DBF file path
+    output_csv = 'links.csv'    # Replace with your desired CSV file path
 
     dbflinks_to_csv(input_dbf, output_csv)
     print(f"Converted links '{input_dbf}' to '{output_csv}' successfully.")
 
+
     # read in nodes and write out CSV file
-    inputn_dbf = 'nodes.dbf'  # Replace with your DBF file path
-    outputn_csv = 'nodes.csv'  # Replace with your desired CSV file path
+    inputn_dbf = 'nodes.dbf'    # Replace with your DBF file path
+    outputn_csv = 'nodes.csv'   # Replace with your desired CSV file path
 
     dbfnodes_to_csv(inputn_dbf, outputn_csv)
     print(f"Converted nodes '{inputn_dbf}' to '{outputn_csv}' successfully.")
