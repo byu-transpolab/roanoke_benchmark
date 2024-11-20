@@ -101,7 +101,7 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('links.dbf', 'links_shape.shp', 'links.csv')
+        dbflinks_to_csv('links.dbf', 'links_shape.shp', 'hwy/links.csv')
         print("Converted links 'links.dbf' to 'links.csv' successfully.")
        
         # Convert nodes DBF to CSV
@@ -110,7 +110,7 @@ if __name__ == "__main__":
  
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes('nodes_from_cube.csv', 'zones.csv', 'nodes.csv')
+        merge_zones_with_nodes('nodes_from_cube.csv', 'zones.csv', 'hwy/nodes.csv')
         print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
    
     except Exception as e:
