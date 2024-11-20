@@ -58,7 +58,8 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
         save_to_csv(merged, csv_file)
     else:
         print("Error: 'ID' column is missing from either the shapefile or DBF data.")
- 
+
+#Only needed if the zone_id column does not exist in your nodes files
 # Function to process and convert DBF nodes to CSV
 def dbfnodes_to_csv(dbf_file, csv_file):
     df = read_dbf(dbf_file)
@@ -78,6 +79,24 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
     # Merge based on 'ID' column and save the result
     merged_df = pd.merge(nodes_df, zones_df[['ID', 'Z']], on='ID', how='left')
     save_to_csv(merged_df, output_csv)
+
+#Alternative: Use if the zone_id column does exist in you nodes file
+#def dbfnodes_to_csv(dbf_file, csv_file):
+    # Read the DBF file
+    #dbf = Dbf5(dbf_file)
+    #df = dbf.to_dataframe()
+
+    # Define the columns you want to keep
+    #new_order = [new column order]  # Replace with your desired columns
+
+    # Drop columns that are not in the new order
+    #df = df[new_order]
+    #df.rename(columns={'Old_column_name': 'New_column_name'}, inplace=True)
+
+
+    # Write to CSV file
+    #df.to_csv(csv_file, index=False)
+
  
 if __name__ == "__main__":
     try:
