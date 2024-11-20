@@ -1,95 +1,101 @@
 import pandas as pd
 from simpledbf import Dbf5
 import geopandas as gpd
-
-# read the link dbf to a csv and export
-def dbflinks_to_csv(dbf_file,  shapefile, csv_file):
-    # Read the DBF file
+import os
+ 
+# Function to read a DBF file and convert it to a DataFrame
+def read_dbf(dbf_file):
     dbf = Dbf5(dbf_file)
-    df = dbf.to_dataframe()
-    
-    # edit the dbf file from cube to have the fields we want
-    # Define the columns you want to keep
-    new_order = ['ID', 'RTE_NAME', 'A', 'B', 'DIR', 'DISTANCE', 'FACTYPE', 'CAP_R', 'FFSPEED_R', 'LANES']  # Replace with your desired columns
-    
-    # Drop columns that are not in the new order
-    df = df[new_order]
-    df.rename(columns={'ID': 'link_id', 'RTE_NAME': 'name', 'A': 'from_node_id', 'B': 'to_node_id', 'DIR': 'directed', 'DISTANCE': 'length', 'FACTYPE': 'facility_type', 'CAP_R': 'capacity', 'FFSPEED_R': 'free_speed', 'LANES': 'lanes'}, inplace=True)
+    return dbf.to_dataframe()
+ 
+# Function to save the DataFrame to CSV
+def save_to_csv(df, csv_file):
+    df.to_csv(csv_file, index=False)
+ 
+# Function to process and convert DBF links to CSV
+def dbflinks_to_csv(dbf_file, shp_file, csv_file):
+     # Check if the shapefile exists
+    if not os.path.exists(shp_file):
+        print(f"Error: The file {shp_file} does not exist.")
+        return
+    # Read the DBF and shapefile
+    df = read_dbf(dbf_file)
+    shapefile = gpd.read_file(shp_file)
+ 
 
-    # Load the shapefile to append geometry
-    gdf = gpd.read_file(shapefile)
+    # Ensure both shapefile and DBF have the 'ID' column
+    if 'ID' in shapefile.columns and 'ID' in df.columns:
+        # Select only the 'ID' and 'geometry' columns from the shapefile
+        shapefile_geometry = shapefile[['ID', 'geometry']]
 
-    # Select the column you want to export (replace 'your_column' with the actual column name)
-    new_column = gdf[['geometry']]
+        # Merge shapefile GeoDataFrame and DBF DataFrame based on 'ID'
+        merged = pd.merge(df, shapefile_geometry, on='ID', how='left')
 
-    # Concatenate the new column to the existing DataFrame
-    # TODO: fix so that we join by ID instead of by place.
-    combined_df = pd.concat([df, new_column], axis=1)
+        # Rename columns and reorder them
+        merged.rename(columns={
+            'ID': 'link_id',
+            'RTE_NAME': 'name',
+            'A': 'from_node_id',
+            'B': 'to_node_id',
+            'DIR': 'directed',
+            'DISTANCE': 'length',
+            'FACTYPE': 'facility_type',
+            'CAP_R': 'capacity',
+            'FFSPEED_R': 'free_speed',
+            'LANES': 'lanes',
+            'BIKE_FAC': 'bike_facility'
+        }, inplace=True)
+ 
+         # List the columns to keep (those that are renamed)
+        columns_to_keep = ['link_id', 'name', 'from_node_id', 'to_node_id', 
+                           'directed', 'length', 'facility_type', 'capacity', 
+                           'free_speed', 'lanes', 'bike_facility', 'geometry']
+        
+        # Drop columns that are not in the 'columns_to_keep' list
+        merged = merged[columns_to_keep]
 
-    # Save the combined DataFrame back to the CSV file
-    combined_df.to_csv(csv_file, index=False)
-
-
-def dbfnodes_to_csv(in_csv_file, zones_file, out_csv_file):
-
-    # Load the source and destination CSV files
-    source_file = 'zones.csv'
-    destination_file = 'nodes.csv'
-
-    # Read the CSV files into DataFrames
-    # TODO: Kayleigh to clean up and make it a linear process.
-    source_df = pd.read_csv(source_file)
-    destination_df = pd.read_csv(destination_file)
-
-    # Specify the column you want to move
-    column_to_move = 'Z'  # replace with your column name
-
-    # Check if the column exists in the source DataFrame
-    if column_to_move in source_df.columns:
-    # Extract the column
-     column_data = source_df[column_to_move]
-
-    # Add the column to the destination DataFrame
-    destination_df[column_to_move] = column_data
-
-    # Save the updated destination DataFrame back to CSV
-    destination_df.to_csv(destination_file, index=False)
-    # Step 1: Read the CSV file
-
-    # Define the columns you want to keep
-    new_order = ['N', 'X', 'Y', 'Z']  # Replace with your desired columns
-    
-    # Drop columns that are not in the new order
-    df = df[new_order]
-
-    # Step 2: Rename the columns
-    # For example, if you want to rename 'old_name1' to 'new_name1' and 'old_name2' to 'new_name2':
-    df.rename(columns={'N': 'node_id', 'X': 'x_coord', 'Y': 'y_coord', 'Z': 'zone_id'}, inplace=True)
-
-    # Step 3: Save the modified DataFrame back to a CSV file
-    df.to_csv(out_csv_file, index=False)
-
+        # Save the merged DataFrame to CSV
+        save_to_csv(merged, csv_file)
+    else:
+        print("Error: 'ID' column is missing from either the shapefile or DBF data.")
+ 
+# Function to process and convert DBF nodes to CSV
+def dbfnodes_to_csv(dbf_file, csv_file):
+    df = read_dbf(dbf_file)
+    # Rename columns for clarity
+    df.rename(columns={'N': 'ID', 'X': 'x_coord', 'Y': 'y_coord'}, inplace=True)
+   
+    # Save to CSV
+    save_to_csv(df, csv_file)
 
 
-
-
+# This is only if the zone_id column does not exist in your nodes files
+# Function to merge zones with nodes data
+def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
+    nodes_df = pd.read_csv(nodes_csv)
+    zones_df = pd.read_csv(zones_csv)
+   
+    # Merge based on 'ID' column and save the result
+    merged_df = pd.merge(nodes_df, zones_df[['ID', 'Z']], on='ID', how='left')
+    save_to_csv(merged_df, output_csv)
+ 
 if __name__ == "__main__":
-    
-    # read in highway network and write out csv file
-    input_dbf = 'highway.dbf'   # Replace with your DBF file path
-    output_csv = 'links.csv'    # Replace with your desired CSV file path
-
-    dbflinks_to_csv(input_dbf, output_csv)
-    print(f"Converted links '{input_dbf}' to '{output_csv}' successfully.")
-
-
-    # read in nodes and write out CSV file
-    inputn_csv = 'nodes_from_cube.csv'    # Replace with your DBF file path
-    outputn_csv = 'nodes.csv'   # Replace with your desired CSV file path
-
-    dbfnodes_to_csv(inputn_dbf, outputn_csv)
-    print(f"Converted nodes '{inputn_dbf}' to '{outputn_csv}' successfully.")
-
+    try:
+        # Convert links DBF to CSV
+        dbflinks_to_csv('links.dbf', 'links_shape.shp', 'links.csv')
+        print("Converted links 'links.dbf' to 'links.csv' successfully.")
+       
+        # Convert nodes DBF to CSV
+        dbfnodes_to_csv('nodes_from_cube.dbf', 'nodes_from_cube.csv')
+        print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
+ 
+        #Only need if zone_id column did not previously exist in your nodes files
+        # Merge zones with nodes
+        merge_zones_with_nodes('nodes_from_cube.csv', 'zones.csv', 'nodes.csv')
+        print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
+   
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 
