@@ -3,6 +3,7 @@ from simpledbf import Dbf5
 import geopandas as gpd
 import os
  
+ #Convert Links DBF file to CSV and merge the geometry column from the links SHP file
 # Function to read a DBF file and convert it to a DataFrame
 def read_dbf(dbf_file):
     dbf = Dbf5(dbf_file)
@@ -59,6 +60,25 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
     else:
         print("Error: 'ID' column is missing from either the shapefile or DBF data.")
 
+#Convert output links file to link volume CSV file
+def dbfoutputs_to_csv(dbf_file, csv_file):
+    # Read the DBF file
+    dbf = Dbf5(dbf_file)
+    df = dbf.to_dataframe()
+
+    # Define the columns you want to keep
+    new_order = ['ID', 'AAWDT', 'AM_VOL', 'MD_VOL', 'PM_VOL', 'NT_VOL', 'TOTAL_VOL']  # Replace with your desired columns
+
+    # Drop columns that are not in the new order
+    df = df[new_order]
+    df.rename(columns={'ID': 'link_id', 'AM_VOL': 'mpo_vol_am', 'MD_VOL': 'mpo_vol_md', 'PM_VOL': 'mpo_vol_pm', 'NT_VOL': 'mpo_vol_nt', 'TOTAL_VOL': 'mpo_vol_total'}, inplace=True)
+
+
+    # Write to CSV file
+    df.to_csv(csv_file, index=False)
+
+
+
 #Only needed if the zone_id column does not exist in your nodes files
 # Function to process and convert DBF nodes to CSV
 def dbfnodes_to_csv(dbf_file, csv_file):
@@ -103,6 +123,9 @@ if __name__ == "__main__":
         # Convert links DBF to CSV
         dbflinks_to_csv('links.dbf', 'links_shape.shp', 'hwy/links.csv')
         print("Converted links 'links.dbf' to 'links.csv' successfully.")
+
+        dbfoutputs_to_csv('output_links.dbf', 'hwy/links_vol.csv')
+        print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
        
         # Convert nodes DBF to CSV
         dbfnodes_to_csv('nodes_from_cube.dbf', 'nodes_from_cube.csv')
