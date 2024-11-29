@@ -1,8 +1,3 @@
-
-
-#Scroll to the bottom for the only code that needs to be edited. 
-
-
 import copy
 import os
 import math
@@ -724,8 +719,8 @@ if __name__ == '__main__':
     global period_start_time
     global period_end_time
     
-    input_path = 'transit/gtfs Input/roanoke'           # Where you are reading the gtfs data from. 
-    output_path = 'transit/output/Roanoke_transit'      # Where the files will be placed upon completion. 
+    input_path = 'transit/gtfs/roanoke'           # Where you are reading the gtfs data from. 
+    output_path = 'transit/'      # Where the files will be placed upon completion. 
     transit_node_name = 'transit_node.csv'              # Name of nodes. Must be Unique
     transit_link_name = 'transit_link.csv'              # Name of Links. Must be Unique
     time_period = '0000_2359'                           # The time period of the data. The code below changes the format.
