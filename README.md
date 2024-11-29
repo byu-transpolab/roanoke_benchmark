@@ -14,16 +14,16 @@ sandbox may use whichever of the several network engines that they have availabl
 
 ## Contents
 This repository contains several files that researchers can draw upon to generate their own scenarios. 
-The files are compiled from and for the trip-based model developed by Fehr & Peers for the Cache Valley 
-Metropolitan Planning Organization (MPO), which oversees transportation planning efforts in the Logan, 
-Utah metropolitan area. The files are provided courtesy of the Utah Department of Transportation 
-and the Cache Valley MPO.
+The files are compiled from and for the trip-based model developed by WSP for the Roanoke Valley Transportation 
+Planning Organization (RVTPO), which oversees transportation planning efforts in the Roanoke, Virginia
+metropolitan area. The files are provided courtesy of the Virginia Department of Transportation 
+and the RVTPO.
 
 The first set of files are drawn from the inputs to the travel model:
-  - A **Highway network** labeled with vehicle counts as well as the trip-based model vehicle forecasts
-  - A **Transit network** with accompanying ridership measures
-  - A topologically connected **Bicyle network**
-  - A **Socioeconomic data** file with employment and aggregate household characteristics by TAZ.
+  - A **Highway network** labeled with vehicle counts as well as the trip-based model vehicle forecasts. This is stored in `hwy/` as a gmns-compliant network. The source files for this network (exports from the RVTPO model) are in `hwy/src`, and are created with the `py/network.py` script.
+  - A **Transit network** with accompanying ridership measures. This is stored in `transit/` as a gmns-compliant network. The source file for the GTFS routes is included in `transit/gtfs`, and the script to convert the GTFS to GMNS is in `py/gtfs2gmns_conversion.py`
+  - A topologically connected **Bicyle network**. This is included in the highway network.
+  - A **Socioeconomic data** file with employment and aggregate household characteristics by TAZ, stored in `se/zones.csv`.
   - A **Traffic Analysis Zone** geojson file
 
 A second set of files are outputs of the travel model:
@@ -34,9 +34,6 @@ A second set of files are outputs of the travel model:
 
 These output files may be useful if researchers optionally wish to --- for example --- include freight
 processes in the model steps or simply include them as background traffic.
-
-A household travel survey for the region will be made available on request to creditable researchers. This survey
-was conducted in Spring and Summer of 2023.
 
 ### File formats
 In general, tabular data is provided as plain text with comma-separated values and names in a header; a data
@@ -98,7 +95,7 @@ These are the current processes able to be run within the container.
 4. Run Code. 
 
 ## Converting gtfs data to gmns
-Thanks to the fokes at [the ASU transportation lab](https://github.com/asu-trans-ai-lab/GTFS2GMNS/tree/main), gtfs transit data may be converted into gmns data. 
+Thanks to the folks at [the ASU transportation lab](https://github.com/asu-trans-ai-lab/GTFS2GMNS/tree/main), gtfs transit data may be converted into gmns data. 
 
 ### Obtaining gtfs data
 Transit authorities freely offer thier routes for any who would want it. 
