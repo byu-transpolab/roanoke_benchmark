@@ -121,19 +121,19 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('links.dbf', 'links_shape.shp', 'hwy/links.csv')
+        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/links.csv')
         print("Converted links 'links.dbf' to 'links.csv' successfully.")
 
-        dbfoutputs_to_csv('output_links.dbf', 'hwy/links_vol.csv')
+        dbfoutputs_to_csv('hwy/src/output_links.dbf', 'hwy/links_vol.csv')
         print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
        
         # Convert nodes DBF to CSV
-        dbfnodes_to_csv('nodes_from_cube.dbf', 'nodes_from_cube.csv')
+        dbfnodes_to_csv('hwy/src/nodes_from_cube.dbf', 'hwy/src/nodes_from_cube.csv')
         print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
  
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes('nodes_from_cube.csv', 'zones.csv', 'hwy/nodes.csv')
+        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'se/zones.csv', 'hwy/nodes.csv')
         print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
    
     except Exception as e:
