@@ -14,6 +14,10 @@ RUN apt update -y
 RUN apt install -y libsqlite3-mod-spatialite
 RUN apt install -y libspatialite-dev
 
+#This is not a dependency, but helps for visualization.
+RUN pip install folium
+RUN pip install matplotlib
+
 #Adds from working Directory to this file path.
 COPY . /app
 
