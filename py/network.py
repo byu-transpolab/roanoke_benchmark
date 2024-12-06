@@ -36,16 +36,12 @@ def factype_to_string(factype_value):
 def create_allowed_uses_column(df):
     allowed_uses = []
     
-    # Debug: Check if the columns exist
-    print(f"Columns in DataFrame: {df.columns}")
-    
     for index, row in df.iterrows():
         use_parts = []
         
         # Check for TRAFF_PHB column (if it has 'Y')
         if 'traff_phb' in row and row['traff_phb'] == 'Y':
             use_parts.append('c')
-            
         
         # Check for PED_PHB column (if it has 'Y')
         if 'ped_phb' in row and row['ped_phb'] == 'Y':
@@ -55,12 +51,13 @@ def create_allowed_uses_column(df):
         if 'bike_facility' in row and pd.notnull(row['bike_facility']) and row['bike_facility'] != '':
             use_parts.append('b')
         
-        # Join the parts and assign it to the allowed_uses list
-        allowed_uses.append(','.join(use_parts) if use_parts else '')
+        # Join the parts into a string and assign it to the allowed_uses list
+        allowed_uses.append(''.join(use_parts) if use_parts else '')
     
     # Assign the list as a new 'allowed_uses' column in the DataFrame
     df['allowed_uses'] = allowed_uses
     return df
+
 
 # Function to process and convert DBF links to CSV
 def dbflinks_to_csv(dbf_file, shp_file, csv_file):
