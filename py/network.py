@@ -16,23 +16,23 @@ def save_to_csv(df, csv_file):
 def factype_to_string(factype_value):
     if isinstance(factype_value, int):
         factype_dict = {
-            1: 'Interstate/Principal Freeway', 
-            2: 'Minor Freeway', 
-            3: 'Principal Arterial', 
-            4: 'Major Arterial', 
-            5: 'Minor Arterial', 
-            6: 'Major Collector', 
-            7: 'Minor Collector', 
+            1: 'Interstate_Principal_Freeway', 
+            2: 'Minor_Freeway', 
+            3: 'Principal_Arterial', 
+            4: 'Major_Arterial', 
+            5: 'Minor_Arterial', 
+            6: 'Major_Collector', 
+            7: 'Minor_Collector', 
             8: 'Local', 
-            9: 'High-speed Ramp', 
-            10: 'Low-speed Ramp', 
-            11: 'Centroid Connector', 
-            12: 'External Station Connector'
+            9: 'Highspeed_Ramp', 
+            10: 'Lowspeed_Ramp', 
+            11: 'Centroid_Connector', 
+            12: 'External_Station_Connector'
         }
-        return factype_dict.get(factype_value, f'Unknown Type {factype_value}')
+        return factype_dict.get(factype_value, f'Unknown_Type')  #_{factype_value}
     return 'Invalid FACTYPE'
 
-# Function to create 'allowed_uses' column based on conditions
+# Function to create 'allowed_uses' column based on conditions 
 def create_allowed_uses_column(df):
     allowed_uses = []
     
@@ -42,7 +42,9 @@ def create_allowed_uses_column(df):
         # Check for TRAFF_PHB column (if it has 'Y')
         if 'traff_phb' in row and row['traff_phb'] == 'Y':
             use_parts.append('c')
-        
+        else: #This was used for testing purposes until we figure out why some rows are null.
+           use_parts.append('t')
+            
         # Check for PED_PHB column (if it has 'Y')
         if 'ped_phb' in row and row['ped_phb'] == 'Y':
             use_parts.append('w')

@@ -14,17 +14,23 @@ RUN apt update -y
 RUN apt install -y libsqlite3-mod-spatialite
 RUN apt install -y libspatialite-dev
 
-#These are not a dependencies, but helps for visualization.
+#These are not a dependencies, but helps for visualization/ other processes in aequilibrae.
 RUN pip install folium
 RUN pip install matplotlib
 RUN pip install mapclassify
+RUN pip install timer
 
 #Adds from working Directory to this file path.
 COPY . /app
 
+#Runs intro script at start up. To be utilized latter?
 RUN chmod +x introduction.sh
 
 # An file that gives instructions on start up.
 CMD ["./introduction.sh"]
 
-# docker run -d -it --name CONTAINDERNAME --mount type=bind,source=/FILE/PATH/TO/DATA,target=/userdata CONTAINERNAME
+
+
+# Code to build Continaer and code to run to start continer from an image. 
+# docker build -t IMAGENAME .
+# docker run -d -it --name CONTAINDERNAME --mount type=bind,source=/FILE/PATH/TO/DATA,target=/userdata IMAGENAME

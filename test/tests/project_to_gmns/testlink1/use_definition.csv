@@ -1,0 +1,5 @@
+use,persons_per_vehicle,pce,description,mode_id
+car,1,1,All motorized vehicles,c
+transit,1,1,Public transport vehicles,t
+walk,1,1,Walking links,w
+bicycle,1,1,Biking links,b
