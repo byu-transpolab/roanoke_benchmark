@@ -164,6 +164,11 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
    
     # Merge based on 'ID' column and save the result
     merged_df = pd.merge(nodes_df, zones_df[['ID', 'Z']], on='ID', how='left')
+
+    # Add the `is_centroid` column
+    merged_df['is_centroid'] = merged_df['Z'].apply(lambda z: 1 if pd.notna(z) and float(z).is_integer() else 0)
+
+    # Save the result to CSV
     save_to_csv(merged_df, output_csv)
 
 #Alternative: Use if the zone_id column does exist in you nodes file
