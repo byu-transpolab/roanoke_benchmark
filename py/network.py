@@ -42,9 +42,7 @@ def create_allowed_uses_column(df):
         # Check for TRAFF_PHB column (if it has 'Y')
         if 'traff_phb' in row and row['traff_phb'] == 'Y':
             use_parts.append('c')
-        else: #This was used for testing purposes until we figure out why some rows are null.
-           use_parts.append('t')
-            
+        
         # Check for PED_PHB column (if it has 'Y')
         if 'ped_phb' in row and row['ped_phb'] == 'Y':
             use_parts.append('w')
@@ -54,12 +52,17 @@ def create_allowed_uses_column(df):
             use_parts.append('b')
         
         # Join the parts into a string and assign it to the allowed_uses list
-        allowed_uses.append(''.join(use_parts) if use_parts else '')
+        allowed_uses_value = ''.join(use_parts)
+        
+        # If no uses were added, assign 'cwbt'
+        if not allowed_uses_value:
+            allowed_uses_value = 'cwbt'
+        
+        allowed_uses.append(allowed_uses_value)
     
     # Assign the list as a new 'allowed_uses' column in the DataFrame
     df['allowed_uses'] = allowed_uses
     return df
-
 
 # Function to process and convert DBF links to CSV
 def dbflinks_to_csv(dbf_file, shp_file, csv_file):
