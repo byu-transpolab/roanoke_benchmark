@@ -152,7 +152,7 @@ print('Nodes added to Project:', time_end - time_start, 's')
 '''
 
 
-'''  Suppose to Display Map 
+'''  Supposed to Display Map 
 # We grab all the links data as a geopandas GeoDataFrame so we can process it easier
 links = project.network.links.data
 

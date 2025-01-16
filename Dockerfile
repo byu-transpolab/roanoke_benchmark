@@ -34,3 +34,6 @@ CMD ["./introduction.sh"]
 # Code to build Continaer and code to run to start continer from an image. 
 # docker build -t IMAGENAME .
 # docker run -d -it --name CONTAINDERNAME --mount type=bind,source=/FILE/PATH/TO/DATA,target=/userdata IMAGENAME
+
+#docker run -d -it --name linkrenumbering --mount type=bind,source=/Users/willicon/Desktop/test,target=/app/userdata test1 
+# docker build -t test1 .

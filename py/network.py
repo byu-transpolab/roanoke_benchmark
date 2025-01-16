@@ -16,20 +16,20 @@ def save_to_csv(df, csv_file):
 def factype_to_string(factype_value):
     if isinstance(factype_value, int):
         factype_dict = {
-            1: 'Interstate_Principal_Freeway', 
-            2: 'Minor_Freeway', 
-            3: 'Principal_Arterial', 
-            4: 'Major_Arterial', 
-            5: 'Minor_Arterial', 
-            6: 'Major_Collector', 
-            7: 'Minor_Collector', 
-            8: 'Local', 
-            9: 'Highspeed_Ramp', 
-            10: 'Lowspeed_Ramp', 
-            11: 'Centroid_Connector', 
-            12: 'External_Station_Connector'
+            1: 'interstate_principal_freeway', 
+            2: 'minor_freeway', 
+            3: 'principal_arterial', 
+            4: 'major_arterial', 
+            5: 'minor_arterial', 
+            6: 'major_collector', 
+            7: 'minor_collector', 
+            8: 'local', 
+            9: 'highspeed_ramp', 
+            10: 'lowspeed_ramp', 
+            11: 'centroid_connector', 
+            12: 'external_station_connector'
         }
-        return factype_dict.get(factype_value, f'Unknown_Type')  #_{factype_value}
+        return factype_dict.get(factype_value, f'unknown_type')  #_{factype_value}
     return 'Invalid FACTYPE'
 
 # Function to create 'allowed_uses' column based on conditions 

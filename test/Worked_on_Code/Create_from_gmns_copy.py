@@ -19,7 +19,7 @@ node_file ='app/hwy/nodes.csv'
 
 #Location and name for project
 folder_location ='app/userdata/tests' #This is the location of your project
-folder_name = 'testgmns7'           #This is the name for your project
+folder_name = 'testgmns102'           #This is the name for your project
 
 #Creates file path, and creates a new Aequilibrae project
 folder = join(folder_location,folder_name) 
@@ -30,6 +30,15 @@ project.new(folder)
 time_end = time.time()
 print('Project Created:', time_end - time_start, 's')
 
+
+" Adding Links and Nodes to the Project"
+time_start = time.time()
+project.network.create_from_gmns(link_file, node_file)
+time_end = time.time()
+
+print('Links and Nodes added to Project:', time_end - time_start, 's')
+
+
 "       Renaming Columns       "
 # Load the CSV file into a DataFrame
 df_node = pd.read_csv(node_file)
@@ -37,13 +46,14 @@ df_link = pd.read_csv(link_file)
 
 # Rename ID Column column
 df_node.rename(columns={'ID':  'node_id'}, inplace=True)
-df_link.rename(columns={'allowed_uses':  'modes'}, inplace=True)
-df_link.rename(columns={'facility_type':  'link_type'}, inplace=True)
+#df_link.rename(columns={'allowed_uses':  'modes'}, inplace=True)
+#df_link.rename(columns={'facility_type':  'link_type'}, inplace=True)
 
 # Save the updated DataFrame back to the CSV file
 df_node.to_csv(node_file, index=False)
+#df_link.to_csv(link_file, index=False)
 
-'''
+
 "       Adding Link_types to Project       "
 time_start = time.time()
 # The links we have in the data are:
@@ -92,12 +102,20 @@ for i, mode_id in enumerate(modes_to_add):
 
 time_end = time.time()
 print('Mode Types Added:', time_end - time_start, 's')
+
+
+
+'''
+#Adding Centroid Data to be collected in the parameter
+
+centroid_field = {
+    "centroid": {"description": "centroid flag", "type": "boolean", "required": False}}
+    
+par = Parameters()
+par.parameters["network"]["gmns"]["node"]["fields"].update(centroid_field)
+par.write_back()
+
 '''
 
 
-" Adding Links and Nodes to the Project"
-time_start = time.time()
-project.network.create_from_gmns(link_file, node_file)
-time_end = time.time()
 
-print('Links and Nodes added to Project:', time_end - time_start, 's')
