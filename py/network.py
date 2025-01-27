@@ -64,6 +64,10 @@ def create_allowed_uses_column(df):
     df['allowed_uses'] = allowed_uses
     return df
 
+# Function to remove duplicate rows based on the 'ID' column
+def remove_duplicate_ids(df):
+    return df.drop_duplicates(subset=['ID'], keep='first')
+
 # Function to process and convert DBF links to CSV
 def dbflinks_to_csv(dbf_file, shp_file, csv_file):
     # Check if the shapefile exists
@@ -82,6 +86,18 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
 
         # Merge shapefile GeoDataFrame and DBF DataFrame based on 'ID'
         merged = pd.merge(df, shapefile_geometry, on='ID', how='left')
+
+        # **Remove duplicates after geometry is added**
+        # Log duplicates found for verification
+        duplicates = merged[merged.duplicated(subset=['ID'], keep=False)]
+        if not duplicates.empty:
+            print(f"Found {len(duplicates)} duplicate rows before removal.")
+        
+        # Remove duplicates
+        merged = remove_duplicate_ids(merged)
+
+        # Log after duplicates are removed
+        print(f"After duplicate removal, {len(merged)} rows remain.")
 
         # Ensure the 'FACTYPE' column is in integer format before applying conversion
         merged['FACTYPE'] = merged['FACTYPE'].astype('Int64', errors='ignore')
