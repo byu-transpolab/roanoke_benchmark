@@ -166,7 +166,7 @@ def dbfoutputs_to_csv(dbf_file, csv_file):
 def dbfnodes_to_csv(dbf_file, csv_file):
     df = read_dbf(dbf_file)
     # Rename columns for clarity
-    df.rename(columns={'N': 'ID', 'X': 'x_coord', 'Y': 'y_coord'}, inplace=True)
+    df.rename(columns={'N': 'ID'}, inplace=True)
    
     # Save to CSV
     save_to_csv(df, csv_file)
@@ -183,6 +183,8 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 
     # Add the `is_centroid` column
     merged_df['is_centroid'] = merged_df['Z'].apply(lambda z: 1 if pd.notna(z) and float(z).is_integer() else 0)
+
+    merged_df.rename(columns={'Z': 'zone_id', 'ID': 'node_id', 'X': 'x_coord', 'Y': 'y_coord'}, inplace=True)
 
     # Save the result to CSV
     save_to_csv(merged_df, output_csv)
