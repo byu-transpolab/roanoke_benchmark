@@ -115,7 +115,7 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
             'DISTANCE': 'length',
             'FACTYPE': 'facility_type',
             'CAP_R': 'capacity',
-            'FFSPEED_R': 'free_speed',
+            'POST_SPD': 'free_speed',
             'LANES': 'lanes',
             'BIKE_FAC': 'bike_facility',
             'TRAFF_PHB': 'traff_phb',  # Keep these temporarily for processing
