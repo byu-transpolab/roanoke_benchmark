@@ -109,3 +109,9 @@ Learn more about gtfs [here](https://gtfs.org)
 1. Open the gtfs2gmns_conversion.py and scroll to the bottom.
 2. Modify **input_path**, **output_path**, **transit_node_name**, and **transit_link_name** as needed. **time_period** may also be modified if only a certain period is desired.
 3. Run code.
+
+
+#Aequilibrae Notes
+- link types must have unique first letters, or the project creation will fail using create_from_gmns.
+- Centroid_conntectors will fail to import, causing a unique constraint error. Rename the connectors to something else, following the above constraint. 
+- Use group is requiried currently, not optional. 
