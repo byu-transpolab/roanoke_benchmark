@@ -16,43 +16,21 @@ def save_to_csv(df, csv_file):
 def factype_to_string(factype_value):
     if isinstance(factype_value, int):
         factype_dict = {
-            1: 'a', 
-            2: 'b', 
-            3: 'c', 
-            4: 'd', 
-            5: 'e', 
-            6: 'f', 
-            7: 'g', 
-            8: 'h', 
-            9: 'i', 
-            10: 'j', 
-            11: 'k', 
-            12: 'l'
+            1: 'interstate_principal_freeway', 
+            2: 'minor_freeway', 
+            3: 'principal_arterial', 
+            4: 'major_arterial', 
+            5: 'minor_arterial', 
+            6: 'major_collector', 
+            7: 'minor_collector', 
+            8: 'local', 
+            9: 'highspeed_ramp', 
+            10: 'lowspeed_ramp', 
+            11: 'centroid_connector', 
+            12: 'external_station_connector'
         }
         return factype_dict.get(factype_value, f'unknown_type')  #_{factype_value}
     return 'Invalid FACTYPE'
-
-# Create a dictionary for facility_type mappings
-facility_type_map = {
-    'a': 'Interstate/Principal Freeway',
-    'b': 'Minor Freeway',
-    'c': 'Principal Arterial',
-    'd': 'Major Arterial',
-    'e': 'Minor Arterial',
-    'f': 'Major Collector',
-    'g': 'Minor Collector',
-    'h': 'Local',
-    'i': 'High-speed Ramp',
-    'j': 'Low-speed Ramp',
-    'k': 'Centroid Connector',
-    'l': 'External Station Connector'
-}
-
-# Function to create 'link_type_name' column
-def create_link_type_name_column(df):
-    df['link_type_name'] = df['facility_type'].map(facility_type_map).fillna('Unknown Type')
-    return df
-
 
 # Function to create 'allowed_uses' column based on conditions 
 def create_allowed_uses_column(df):
@@ -91,7 +69,7 @@ def remove_duplicate_ids(df):
     return df.drop_duplicates(subset=['ID'], keep='first')
 
 # Function to process and convert DBF links to CSV
-def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
+def dbflinks_to_csv(dbf_file, shp_file, csv_file):
     # Check if the shapefile exists
     if not os.path.exists(shp_file):
         print(f"Error: The file {shp_file} does not exist.")
@@ -100,17 +78,6 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
     # Read the DBF and shapefile
     df = read_dbf(dbf_file)
     shapefile = gpd.read_file(shp_file)
-
-    # Read the DBF and shapefile
-    df = read_dbf(dbf_file)
-    shapefile = gpd.read_file(shp_file)
-
-    # Read the output_links.dbf file and merge FFSPEED column
-    output_df = read_dbf(output_dbf_file)[['ID', 'FFSPEED']]
-    output_df.rename(columns={'FFSPEED': 'free_speed'}, inplace=True)
-
-    # Merge the free_speed column into df
-    df = pd.merge(df, output_df, on='ID', how='left')
 
     # Ensure both shapefile and DBF have the 'ID' column
     if 'ID' in shapefile.columns and 'ID' in df.columns:
@@ -148,6 +115,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
             'DISTANCE': 'length',
             'FACTYPE': 'facility_type',
             'CAP_R': 'capacity',
+            'POST_SPD': 'free_speed',
             'LANES': 'lanes',
             'BIKE_FAC': 'bike_facility',
             'TRAFF_PHB': 'traff_phb',  # Keep these temporarily for processing
@@ -167,9 +135,6 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
         
         # Keep only the relevant columns
         merged = merged[columns_to_keep]
-
-        # Convert facility_type to human-readable names before saving
-        merged = create_link_type_name_column(merged)
 
         # Save the merged DataFrame to CSV
         save_to_csv(merged, csv_file)
@@ -244,7 +209,7 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'hwy/links.csv')
+        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/links.csv')
         print("Converted links 'links.dbf' to 'links.csv' successfully.")
 
         dbfoutputs_to_csv('hwy/src/output_links.dbf', 'hwy/links_vol.csv')
