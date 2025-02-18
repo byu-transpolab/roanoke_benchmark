@@ -69,7 +69,7 @@ def remove_duplicate_ids(df):
     return df.drop_duplicates(subset=['ID'], keep='first')
 
 # Function to process and convert DBF links to CSV
-def dbflinks_to_csv(dbf_file, shp_file, csv_file):
+def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
     # Check if the shapefile exists
     if not os.path.exists(shp_file):
         print(f"Error: The file {shp_file} does not exist.")
@@ -78,6 +78,17 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
     # Read the DBF and shapefile
     df = read_dbf(dbf_file)
     shapefile = gpd.read_file(shp_file)
+
+    # Read the DBF and shapefile
+    df = read_dbf(dbf_file)
+    shapefile = gpd.read_file(shp_file)
+
+    # Read the output_links.dbf file and merge FFSPEED column
+    output_df = read_dbf(output_dbf_file)[['ID', 'FFSPEED']]
+    output_df.rename(columns={'FFSPEED': 'free_speed'}, inplace=True)
+
+    # Merge the free_speed column into df
+    df = pd.merge(df, output_df, on='ID', how='left')
 
     # Ensure both shapefile and DBF have the 'ID' column
     if 'ID' in shapefile.columns and 'ID' in df.columns:
@@ -115,7 +126,6 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
             'DISTANCE': 'length',
             'FACTYPE': 'facility_type',
             'CAP_R': 'capacity',
-            'POST_SPD': 'free_speed',
             'LANES': 'lanes',
             'BIKE_FAC': 'bike_facility',
             'TRAFF_PHB': 'traff_phb',  # Keep these temporarily for processing
@@ -209,7 +219,7 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/links.csv')
+        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'hwy/links.csv')
         print("Converted links 'links.dbf' to 'links.csv' successfully.")
 
         dbfoutputs_to_csv('hwy/src/output_links.dbf', 'hwy/links_vol.csv')
