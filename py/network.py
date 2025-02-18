@@ -16,21 +16,43 @@ def save_to_csv(df, csv_file):
 def factype_to_string(factype_value):
     if isinstance(factype_value, int):
         factype_dict = {
-            1: 'interstate_principal_freeway', 
-            2: 'minor_freeway', 
-            3: 'principal_arterial', 
-            4: 'major_arterial', 
-            5: 'minor_arterial', 
-            6: 'major_collector', 
-            7: 'minor_collector', 
-            8: 'local', 
-            9: 'highspeed_ramp', 
-            10: 'lowspeed_ramp', 
-            11: 'centroid_connector', 
-            12: 'external_station_connector'
+            1: 'a', 
+            2: 'b', 
+            3: 'c', 
+            4: 'd', 
+            5: 'e', 
+            6: 'f', 
+            7: 'g', 
+            8: 'h', 
+            9: 'i', 
+            10: 'j', 
+            11: 'k', 
+            12: 'l'
         }
         return factype_dict.get(factype_value, f'unknown_type')  #_{factype_value}
     return 'Invalid FACTYPE'
+
+# Create a dictionary for facility_type mappings
+facility_type_map = {
+    'a': 'Interstate/Principal Freeway',
+    'b': 'Minor Freeway',
+    'c': 'Principal Arterial',
+    'd': 'Major Arterial',
+    'e': 'Minor Arterial',
+    'f': 'Major Collector',
+    'g': 'Minor Collector',
+    'h': 'Local',
+    'i': 'High-speed Ramp',
+    'j': 'Low-speed Ramp',
+    'k': 'Centroid Connector',
+    'l': 'External Station Connector'
+}
+
+# Function to create 'link_type_name' column
+def create_link_type_name_column(df):
+    df['link_type_name'] = df['facility_type'].map(facility_type_map).fillna('Unknown Type')
+    return df
+
 
 # Function to create 'allowed_uses' column based on conditions 
 def create_allowed_uses_column(df):
@@ -145,6 +167,9 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
         
         # Keep only the relevant columns
         merged = merged[columns_to_keep]
+
+        # Convert facility_type to human-readable names before saving
+        merged = create_link_type_name_column(merged)
 
         # Save the merged DataFrame to CSV
         save_to_csv(merged, csv_file)
