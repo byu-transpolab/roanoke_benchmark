@@ -6,7 +6,7 @@ from math import ceil, floor
 from random import choice, randint
 
 from .consts import EPSILON, MAX_LABEL_COST, SECONDS_IN_MINUTE, SECONDS_IN_HOUR
-from .path import find_path_for_agents, find_shortest_path, find_shortest_path_value, \
+from .path import find_path_for_agents, find_shortest_path, find_shortest_path_distance,find_shortest_path_network, \
                   single_source_shortest_path, benchmark_apsp
 
 
@@ -1519,15 +1519,14 @@ class Assignment:
         
         
         
+    
         
         
         
-        
-        
-    def find_shortest_path_value(self, from_node_id, to_node_id, mode, seq_type='node'):
-        """ call find_shortest_path_value() from path.py
+    def find_shortest_path_distance(self, from_node_id, to_node_id, mode, seq_type='node'):
+        """ call find_shortest_path_distance() from path.py
 
-        exceptions will be handled in find_shortest_path_value()
+        exceptions will be handled in find_shortest_path_distance()
         """
         # reset agent type str or mode according to user's input
         at_name, _ = self._convert_mode(mode)
@@ -1537,7 +1536,25 @@ class Assignment:
         from_node_id = str(from_node_id)
         to_node_id = str(to_node_id)
 
-        return find_shortest_path_value(self.network, from_node_id,
+        return find_shortest_path_distance(self.network, from_node_id,
+                                  to_node_id, seq_type)
+        
+        
+        
+    def find_shortest_path_network(self, from_node_id, to_node_id, mode, seq_type='node'):
+        """ call find_shortest_path_network() from path.py
+
+        exceptions will be handled in find_shortest_path_netowrk()
+        """
+        # reset agent type str or mode according to user's input
+        at_name, _ = self._convert_mode(mode)
+        self.network.set_agent_type_name(at_name)
+
+        # add backward compatibility in case the user still use integer node id's
+        from_node_id = str(from_node_id)
+        to_node_id = str(to_node_id)
+
+        return find_shortest_path_network(self.network, from_node_id,
                                   to_node_id, seq_type)
 
 
@@ -1874,7 +1891,7 @@ class UI:
         
         
         
-    def find_shortest_path_value(self, from_node_id, to_node_id,
+    def find_shortest_path_distance(self, from_node_id, to_node_id,
                            mode='all', seq_type='node'):
         """ return shortest path network between all nodes
 
@@ -1907,12 +1924,53 @@ class UI:
             Exceptions will be thrown if either of from_node_id and and to_node_id
             is not valid node IDs.
         """
-        return self._base_assignment.find_shortest_path_value(
+        return self._base_assignment.find_shortest_path_distance(
             from_node_id,
             to_node_id,
             mode,
             seq_type
         )
+
+    def find_shortest_path_network(self, from_node_id, to_node_id,
+                           mode='all', seq_type='node'):
+        """ return shortest path network between all nodes
+
+        Parameters
+        ----------
+        from_node_id
+            the starting node id, which shall be a string
+
+        to_node_id
+            the ending node id, which shall be a string
+
+        seq_type
+            'node' or 'link'. You will get the shortest path in sequence of
+            either node IDs or link IDs. The default is 'node'.
+
+        mode
+            the target transportation mode which is defined in settings.yml. It
+            can be either agent type or its name. For example, 'w' and 'walk'
+            are equivalent inputs.
+
+            The default is 'all', which means that links are open to all modes.
+
+        Returns
+        -------
+        int
+            the shortest path between from_node_id and to_node_id, as a int in miles
+
+        Note
+        ----
+            Exceptions will be thrown if either of from_node_id and and to_node_id
+            is not valid node IDs.
+        """
+        return self._base_assignment.find_shortest_path_network(
+            from_node_id,
+            to_node_id,
+            mode,
+            seq_type
+        )
+
 
     def get_accessible_nodes(self,
                              source_node_id,

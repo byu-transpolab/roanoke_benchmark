@@ -153,7 +153,7 @@ def _single_source_shortest_path_deque(G, origin_node_no):
         for link in G.nodes[from_node].outgoing_links:
             to_node = link.to_node_no
             new_to_node_cost = (G.node_label_cost[from_node]
-                                + link.fftt)
+                                + link.fftt) 
             # we only compare cost at the downstream node ToID
             # at the new arrival time t
             if new_to_node_cost < G.node_label_cost[to_node]:
@@ -212,8 +212,52 @@ def _single_source_shortest_path_dijkstra(G, origin_node_no):
                 # from the current label at current node and time
                 G.link_preds[to_node] = link.link_no
                 heapq.heappush(SEList, (G.node_label_cost[to_node], to_node))
+ 
+def _shortest_path_deque(G, origin_node_no):
+    """ Deque implementation of MLC using deque list and indicator array
 
+    The caller is responsible for initializing node_label_cost,
+    node_predecessor, and link_predecessor.
 
+    Adopted and modified from
+    https://github.com/jdlph/shortest-path-algorithms
+    """
+    G.node_label_cost[origin_node_no] = 0
+    # node status array
+    status = [0] * G.node_size
+    # scan eligible list
+    SEList = collections.deque()
+    SEList.append(origin_node_no)
+
+    # label correcting
+    while SEList:
+        from_node = SEList.popleft()
+        status[from_node] = 2
+        for link in G.nodes[from_node].outgoing_links:
+            to_node = link.to_node_no
+            
+            new_to_node_cost = (G.node_label_cost[from_node]
+                                + (link.fftt)) 
+            
+            
+            # we only compare cost at the downstream node ToID
+            # at the new arrival time t
+            if new_to_node_cost < G.node_label_cost[to_node]:
+                # update cost label and node/time predecessor
+                G.node_label_cost[to_node] = new_to_node_cost
+                # pointer to previous physical node index
+                # from the current label at current node and time
+                G.node_preds[to_node] = from_node
+                # pointer to previous physical node index
+                # from the current label at current node and time
+                G.link_preds[to_node] = link.link_no
+                if status[to_node] != 1:
+                    if status[to_node] == 2:
+                        SEList.appendleft(to_node)
+                    else:
+                        SEList.append(to_node)
+                    status[to_node] = 1
+                    
 def single_source_shortest_path(G, origin_node_id,
                                 engine_type='c', sp_algm='deque'):
 
@@ -222,6 +266,7 @@ def single_source_shortest_path(G, origin_node_id,
     if engine_type.lower() == 'c':
         G.allocate_for_CAPI()
         _optimal_label_correcting_CAPI(G, origin_node_no)
+        
     else:
         # just in case user uses C++ and Python path engines in a mixed way
         G.has_capi_allocated = False
@@ -244,10 +289,12 @@ def single_source_shortest_path(G, origin_node_id,
             _single_source_shortest_path_deque(G, origin_node_no)
         elif sp_algm.lower() == 'dijkstra':
             _single_source_shortest_path_dijkstra(G, origin_node_no)
+        elif sp_algm.lower() == 'shortest_deque':
+            _shortest_path_deque(G, origin_node_no)
         else:
             raise Exception('Please choose correct shortest path algorithm: '
                             'fifo or deque or dijkstra')
-
+                        
 
 def output_path_sequence(G, to_node_id, type='node'):
     """ output shortest path in terms of node sequence or link sequence
@@ -322,7 +369,7 @@ def find_shortest_path(G, from_node_id, to_node_id, seq_type='node'):
 
 
 
-def find_shortest_path_value(G, from_node_id, to_node_id, seq_type='node'):
+def find_shortest_path_distance(G, from_node_id, to_node_id, seq_type='node'):
     # exceptions
     if from_node_id not in G.map_id_to_no:
         #return None
@@ -332,7 +379,7 @@ def find_shortest_path_value(G, from_node_id, to_node_id, seq_type='node'):
         raise Exception(f'Node ID: {to_node_id} not in the network')
 
     #calculate shortest path
-    single_source_shortest_path(G, from_node_id, engine_type='c')
+    single_source_shortest_path(G, from_node_id, engine_type='x')
 
     path_cost = _get_path_cost(G, to_node_id)
 
@@ -346,6 +393,34 @@ def find_shortest_path_value(G, from_node_id, to_node_id, seq_type='node'):
 
 
 
+
+
+
+
+def find_shortest_path_network(G, from_node_id, to_node_id, seq_type='node'):
+    # exceptions
+    if from_node_id not in G.map_id_to_no:
+        #return None
+        raise Exception(f'Node ID: {from_node_id} not in the network')
+    if to_node_id not in G.map_id_to_no:
+        #return None
+        raise Exception(f'Node ID: {to_node_id} not in the network')
+
+    #calculate shortest path
+    single_source_shortest_path(G, from_node_id, engine_type='x', sp_algm='shortest_deque')
+
+    path_cost_distance = _get_path_cost(G, to_node_id)
+    
+    path_cost = path_cost_distance
+    
+
+    if path_cost >= MAX_LABEL_COST:
+        return 9999999
+
+    if seq_type.startswith('node'):
+        return path_cost
+    else:
+        return path_cost
 
 
 

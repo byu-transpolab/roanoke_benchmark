@@ -18,9 +18,9 @@ network = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=network_
 
 #### To and From nodes ###
 from_node = 1
-to_node =5713
-# node path value from node 1 to node 2
-print(network.find_shortest_path(from_node, to_node))
+to_node =2
+# node path value from node 1 to node 2s
+print(network.find_shortest_path_network(from_node, to_node))
 
 
 

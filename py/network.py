@@ -12,7 +12,7 @@ def read_dbf(dbf_file):
 def save_to_csv(df, csv_file):
     df.to_csv(csv_file, index=False)
 
-# If the values in the facility_type column are integers, use this function to convert them to strings based on your data.
+# If the values in the facility_type/link_type column are integers, use this function to convert them to strings based on your data.
 def factype_to_string(factype_value):
     if isinstance(factype_value, int):
         factype_dict = {
@@ -113,7 +113,7 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
             'B': 'to_node_id',
             'DIR': 'directed',
             'DISTANCE': 'length',
-            'FACTYPE': 'facility_type',
+            'FACTYPE': 'link_type',
             'CAP_R': 'capacity',
             'POST_SPD': 'free_speed',
             'LANES': 'lanes',
@@ -130,7 +130,7 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
 
         # List the columns to keep (those that are renamed)
         columns_to_keep = ['link_id', 'name', 'from_node_id', 'to_node_id', 
-                           'directed', 'length', 'facility_type', 'capacity', 
+                           'directed', 'length', 'link_type', 'capacity', 
                            'free_speed', 'lanes', 'bike_facility', 'allowed_uses', 'geometry']
         
         # Keep only the relevant columns

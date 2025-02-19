@@ -1,3 +1,4 @@
+'''
 from aequilibrae.project import Project
 from aequilibrae.project import Project
 from aequilibrae.parameters import Parameters
@@ -58,7 +59,7 @@ time_end = time.time()
 print('Links and Nodes added to Project:', time_end - time_start, 's')
 
 
-'''
+
 "       Adding Link_types to Project       "
 time_start = time.time()
 # The links we have in the data are:
@@ -68,12 +69,6 @@ link_types = df_link.link_type.unique()
 lt = project.network.link_types
 lt_dict = lt.all_types()
 existing_types = [ltype.link_type for ltype in lt_dict.values()]
-
-'''
-#alphabet = ["n","o","p","q","r","s","t","u","v","w","x","a","b","c","d"]
-
-#,"e","f","g","h","i","j","k","l","m",
-'''
 
 
 
@@ -88,8 +83,6 @@ for i, ltype in enumerate(types_to_add):
 
 time_end = time.time()
 print('Link Types Added:', time_end - time_start, 's')
-
-
 
 
 
@@ -132,6 +125,5 @@ par = Parameters()
 par.parameters["network"]["gmns"]["node"]["fields"].update(centroid_field)
 par.write_back()
 '''
-
 
 
