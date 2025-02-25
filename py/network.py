@@ -128,6 +128,9 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
         # Drop the TRAFF_PHB and PED_PHB columns after creating 'allowed_uses'
         merged.drop(columns=['traff_phb', 'ped_phb'], inplace=True)
 
+        # Ensure empty strings are converted to NaN, then replace NaN and 0 with 25
+        merged['free_speed'] = merged['free_speed'].replace("", pd.NA).fillna(25).replace(0, 25)
+
         # List the columns to keep (those that are renamed)
         columns_to_keep = ['link_id', 'name', 'from_node_id', 'to_node_id', 
                            'directed', 'length', 'link_type', 'capacity', 
@@ -221,7 +224,7 @@ if __name__ == "__main__":
  
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'se/zones.csv', 'hwy/nodes.csv')
+        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'hwy/zones.csv', 'hwy/nodes.csv')
         print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
    
     except Exception as e:
