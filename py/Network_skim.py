@@ -10,14 +10,14 @@ import openmatrix as omx
 import os
 
 
-network_file = "hwy"
-link_file = os.path.join(network_file, "link.csv")
-node_file = os.path.join(network_file, "node.csv")
+network_dir= "hwy"
+link_file = os.path.join(network_dir, "link.csv")
+node_file = os.path.join(network_dir, "node.csv")
 
 # Output file and path
 output_dir = "hwy"
-output_filename = "shortest_path_matrix"
-output_type = ".omx"  # Choose between ".csv", ".omx", or ".zip"
+output_filename = "re_shortest_path_matrix"
+output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
 
 
 def compute_row_distances(row_node, nodes, network):
@@ -110,12 +110,12 @@ def save_as_zip(df_matrix, output_path, csv_filename):
     print(f"Matrix Zipfile saved to {output_path}")
 
 
-def find_shortest_path_network(network_file, link_file, node_file, output_filepath, output_filename, output_type):
+def find_shortest_path_network(network_dir, link_file, node_file, output_filepath, output_filename, output_type):
     """
     Reads network files, computes the shortest path distance matrix, and saves it in the desired format.
 
     Parameters:
-        network_file (str): Path to the network directory.
+        network_dir (str): Path to the network directory.
         link_file (str): Path to the link file.
         node_file (str): Path to the node file.
         output_filepath (str): Directory to save the output files.
@@ -131,7 +131,7 @@ def find_shortest_path_network(network_file, link_file, node_file, output_filepa
     df_link.to_csv(link_file, index=False)
 
     # Load the network
-    network = pg.read_network(length_unit="mi", speed_unit="mph", input_dir=network_file)
+    network = pg.read_network(length_unit="mi", speed_unit="mph", input_dir=network_dir)
 
     # Convert node IDs to a NumPy array
     nodes = df_node["node_id"].to_numpy()
@@ -165,4 +165,4 @@ def find_shortest_path_network(network_file, link_file, node_file, output_filepa
 
 
 if __name__ == "__main__":
-    find_shortest_path_network(network_file, link_file, node_file, output_dir, output_filename, output_type)
+    find_shortest_path_network(network_dir, link_file, node_file, output_dir, output_filename, output_type)

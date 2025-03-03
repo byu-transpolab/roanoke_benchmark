@@ -1,39 +1,86 @@
+
+
 import path4gmns_skim as pg
-import numpy as np
 import pandas as pd
-import time
-import os
 
 # Source Files
 input_dir = "hwy"
-link_file = os.path.join(input_dir , "link.csv")
-node_file = os.path.join(input_dir , "node.csv")
 
 # Output file and path
 output_dir = "hwy"
-output_filename = "shortest_path_matrix"
 output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
 
-# Read link file
+
+
+link_file = 'hwy/link.csv'      
+node_file = 'hwy/node.csv'
 df_link = pd.read_csv(link_file)
-df_node = pd.read_csv(node_file)
+df_node = pd.read_csv(node_file) 
+minutes = "yes" 
+  
+  
+  
+  
+if minutes == "yes":
+    ### Convert lengths of road into travel time at FFSpeed ###
+    df_link.length = (df_link.length / df_link.free_speed) * 60  # Convert travel time to minutes
+    df_link.to_csv(link_file, index=False)
+    
+    
+'''    
+#Read link and nodes into network
+nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+x = 4291
+y = 4754
+
+print(nt.find_shortest_path_distance(x,y))
+print(nt.find_shortest_path_distance(y,x))
+'''
 
 ###### Find Shortest Path Network########
 #Read link and nodes into network
 nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
+
+#print(nt.find_shortest_path_distance(1,2))
+#Compute skim
+nt.find_shortest_path_network(output_dir, output_type)
+
+
+if minutes == "yes":
+    ### Convert lengths of road back to lengths from travel time ###
+    df_link.length = (df_link.length / 60) * df_link.free_speed 
+    df_link.to_csv(link_file, index=False)
+    
+   
+
+
+
+
+
+
+
+
+
+
+
+'''
+#for i in range(G.link_size):
+     #   print(G.links[i].fftt)
+        
+    #for i in range(G.node_size):
+       #print(G.nodes[i].node_id)
+    #node_ids = np.array([G.nodes[i].node_id for i in range(G.node_size)])
+    #print(node_ids)
+
+
 #### To and From nodes ###
 from_node = 1101
 to_node =3414
 # node path value from node 1 to node 2s
-print(nt.find_shortest_path_distance(from_node, to_node))
+#print(nt.find_shortest_path(from_node, to_node))
+#nt.find_shortest_path()
 
-print(pg.classes.Network.get_node_no())
-
-#nt.find_shortest_path_network(input_dir ,link_file,node_file,output_dir,output_filename,output_type)
-
-
-'''
  # Load the network
     #network.read_network(length_unit="mi", speed_unit="mph", input_dir=input_dir)
 
@@ -68,16 +115,15 @@ time_end_matrix_all = time.time()
 print(matrix)
 print('Matrix Creation Time:', time_end_matrix_all - time_start_matrix_all, 's') #Total time
 np.savetxt('skim.csv', matrix, delimiter=",", fmt='%d')   # Save to CSV
-'''
 
-'''
+
 # 'data/ASU' #
 print(colplace[0])
 
 print(rowplace[0])
-'''
 
-'''
+
+
 
 # link path value from node 1 to node 2
 print(network.find_shortest_path_value(from_node, to_node, seq_type='link'))
@@ -99,10 +145,10 @@ pg.find_ue(network, column_gen_num, column_update_num,)
 pg.output_columns(network)
 # output link performance to link_performance.csv
 pg.output_link_performance(network)
-'''
 
 
-'''
+
+
 import path4gmns_skim as pg
 import numpy as np
 import pandas as pd
@@ -158,11 +204,11 @@ output_file = "hwy/src/shortest_path_matrix.csv"
 df_matrix.to_csv(output_file, index=True, header=True)
 
 print(f"Matrix saved to {output_file}")
-'''
 
 
 
-'''
+
+
 import path4gmns_skim as pg
 import numpy as np
 import pandas as pd
@@ -181,7 +227,7 @@ node_file = 'hwy/node.csv'      # Node file for calculations
 
 ###Output file and path ###
 output_filepath = "hwy"                  #Folder location for output
-output_filename = "shortest_path_matrix" #Output name (no extensions needed)
+output_filename = "old_shortest_path_matrix" #Output name (no extensions needed)
 output_type = ".csv"                     #Desired Extesnion (".csv", ".omx", ".zip")
 
 def find_shortest_path_network (network_file, link_file, node_file, output_filepath, output_filename, output_type):

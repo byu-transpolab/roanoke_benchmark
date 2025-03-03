@@ -1519,48 +1519,31 @@ class Assignment:
         
         
         
-    
         
         
-        
-    def find_shortest_path_distance(self, from_node_id, to_node_id, mode, seq_type='node'):
+    def find_shortest_path_distance(self, from_node_id, to_node_id):
         """ call find_shortest_path_distance() from path.py
 
         exceptions will be handled in find_shortest_path_distance()
         """
-        # reset agent type str or mode according to user's input
-        at_name, _ = self._convert_mode(mode)
-        self.network.set_agent_type_name(at_name)
-
         # add backward compatibility in case the user still use integer node id's
         from_node_id = str(from_node_id)
         to_node_id = str(to_node_id)
 
         return find_shortest_path_distance(self.network, from_node_id,
-                                  to_node_id, seq_type)
+                                  to_node_id)
         
         
         
-    def find_shortest_path_network(self, from_node_id, to_node_id, mode, seq_type='node'):
+    def find_shortest_path_network(self, output_dir, output_type):
         """ call find_shortest_path_network() from path.py
 
         exceptions will be handled in find_shortest_path_netowrk()
         """
-        # reset agent type str or mode according to user's input
-        at_name, _ = self._convert_mode(mode)
-        self.network.set_agent_type_name(at_name)
 
-        # add backward compatibility in case the user still use integer node id's
-        from_node_id = str(from_node_id)
-        to_node_id = str(to_node_id)
-
-        return find_shortest_path_network(self.network, from_node_id,
-                                  to_node_id, seq_type)
-
-
-
-
-
+        return find_shortest_path_network(self.network, 
+                                          output_dir,  
+                                          output_type)
 
 
 
@@ -1892,7 +1875,7 @@ class UI:
         
         
     def find_shortest_path_distance(self, from_node_id, to_node_id,
-                           mode='all', seq_type='node'):
+                                ):
         """ return shortest path network between all nodes
 
         Parameters
@@ -1927,48 +1910,34 @@ class UI:
         return self._base_assignment.find_shortest_path_distance(
             from_node_id,
             to_node_id,
-            mode,
-            seq_type
         )
 
-    def find_shortest_path_network(self, from_node_id, to_node_id,
-                           mode='all', seq_type='node'):
+    def find_shortest_path_network(self, output_dir, output_type):
         """ return shortest path network between all nodes
 
         Parameters
         ----------
-        from_node_id
-            the starting node id, which shall be a string
 
-        to_node_id
-            the ending node id, which shall be a string
-
-        seq_type
-            'node' or 'link'. You will get the shortest path in sequence of
-            either node IDs or link IDs. The default is 'node'.
-
-        mode
-            the target transportation mode which is defined in settings.yml. It
-            can be either agent type or its name. For example, 'w' and 'walk'
-            are equivalent inputs.
-
-            The default is 'all', which means that links are open to all modes.
-
+        output_dir
+            The filepath where the skim should be saved
+            
+        output_type
+            Choose between ".csv", ".omx", or ".zip" file formate
+            
         Returns
         -------
-        int
-            the shortest path between from_node_id and to_node_id, as a int in miles
+        file
+            Network skim, in minutes, between every node in the network, 
+            in file type specified by output_type
 
         Note
         ----
             Exceptions will be thrown if either of from_node_id and and to_node_id
             is not valid node IDs.
         """
-        return self._base_assignment.find_shortest_path_network(
-            from_node_id,
-            to_node_id,
-            mode,
-            seq_type
+        return self._base_assignment.find_shortest_path_network( 
+            output_dir,  
+            output_type
         )
 
 
