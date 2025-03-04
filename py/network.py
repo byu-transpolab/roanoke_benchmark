@@ -69,7 +69,7 @@ def remove_duplicate_ids(df):
     return df.drop_duplicates(subset=['ID'], keep='first')
 
 # Function to process and convert DBF links to CSV
-def dbflinks_to_csv(dbf_file, shp_file, csv_file):
+def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
     # Check if the shapefile exists
     if not os.path.exists(shp_file):
         print(f"Error: The file {shp_file} does not exist.")
@@ -78,6 +78,22 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
     # Read the DBF and shapefile
     df = read_dbf(dbf_file)
     shapefile = gpd.read_file(shp_file)
+
+    # Read the DBF and shapefile
+    df = read_dbf(dbf_file)
+    shapefile = gpd.read_file(shp_file)
+
+    # Read the output_links.dbf file and merge FFSPEED column
+    output_df = read_dbf(output_dbf_file)[['ID', 'FFSPEED']]
+    output_df.rename(columns={'FFSPEED': 'free_speed'}, inplace=True)
+
+    # Merge the free_speed column into df
+    df = pd.merge(df, output_df, on='ID', how='left')
+
+    df['free_speed'] = df['free_speed'].fillna(25)
+    df.loc[df['free_speed'] == 0, 'free_speed'] = 25
+
+
 
     # Ensure both shapefile and DBF have the 'ID' column
     if 'ID' in shapefile.columns and 'ID' in df.columns:
@@ -115,7 +131,6 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
             'DISTANCE': 'length',
             'FACTYPE': 'link_type',
             'CAP_R': 'capacity',
-            'POST_SPD': 'free_speed',
             'LANES': 'lanes',
             'BIKE_FAC': 'bike_facility',
             'TRAFF_PHB': 'traff_phb',  # Keep these temporarily for processing
@@ -127,9 +142,6 @@ def dbflinks_to_csv(dbf_file, shp_file, csv_file):
 
         # Drop the TRAFF_PHB and PED_PHB columns after creating 'allowed_uses'
         merged.drop(columns=['traff_phb', 'ped_phb'], inplace=True)
-
-        # Ensure empty strings are converted to NaN, then replace NaN and 0 with 25
-        merged['free_speed'] = merged['free_speed'].replace("", pd.NA).fillna(25).replace(0, 25)
 
         # List the columns to keep (those that are renamed)
         columns_to_keep = ['link_id', 'name', 'from_node_id', 'to_node_id', 
@@ -212,8 +224,8 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/link.csv')
-        print("Converted links 'links.dbf' to 'links.csv' successfully.")
+        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'hwy/link.csv')
+        print("Converted links 'links.dbf' to 'link.csv' successfully.")
 
         dbfoutputs_to_csv('hwy/src/output_links.dbf', 'hwy/links_vol.csv')
         print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
