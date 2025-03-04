@@ -16,41 +16,39 @@ link_file = 'hwy/link.csv'
 node_file = 'hwy/node.csv'
 df_link = pd.read_csv(link_file)
 df_node = pd.read_csv(node_file) 
-minutes = "yes" 
-  
-  
-  
-  
+minutes = "NO" 
+     
+'''    
+#Read link and nodes into network
+nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+x = 5220
+y = 3167
+
+print(nt.find_shortest_path_distance(x,y))
+print(nt.find_shortest_path_distance(y,x))
+    
+
+
+
+'''
 if minutes == "yes":
     ### Convert lengths of road into travel time at FFSpeed ###
     df_link.length = (df_link.length / df_link.free_speed) * 60  # Convert travel time to minutes
     df_link.to_csv(link_file, index=False)
     
-    
-'''    
-#Read link and nodes into network
-nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
-x = 4291
-y = 4754
-
-print(nt.find_shortest_path_distance(x,y))
-print(nt.find_shortest_path_distance(y,x))
-'''
 
 ###### Find Shortest Path Network########
 #Read link and nodes into network
 nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
-
-#print(nt.find_shortest_path_distance(1,2))
 #Compute skim
 nt.find_shortest_path_network(output_dir, output_type)
-
 
 if minutes == "yes":
     ### Convert lengths of road back to lengths from travel time ###
     df_link.length = (df_link.length / 60) * df_link.free_speed 
     df_link.to_csv(link_file, index=False)
+
     
    
 

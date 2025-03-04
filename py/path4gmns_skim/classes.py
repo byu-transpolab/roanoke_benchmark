@@ -1497,10 +1497,6 @@ class Assignment:
 
         find_path_for_agents(self.network, self.column_pool)
 
-
-
-
-
     def find_shortest_path(self, from_node_id, to_node_id, mode, seq_type='node'):
         """ call find_shortest_path() from path.py
 
@@ -1517,10 +1513,6 @@ class Assignment:
         return find_shortest_path(self.network, from_node_id,
                                   to_node_id, seq_type)
         
-        
-        
-        
-        
     def find_shortest_path_distance(self, from_node_id, to_node_id):
         """ call find_shortest_path_distance() from path.py
 
@@ -1533,8 +1525,6 @@ class Assignment:
         return find_shortest_path_distance(self.network, from_node_id,
                                   to_node_id)
         
-        
-        
     def find_shortest_path_network(self, output_dir, output_type):
         """ call find_shortest_path_network() from path.py
 
@@ -1544,9 +1534,6 @@ class Assignment:
         return find_shortest_path_network(self.network, 
                                           output_dir,  
                                           output_type)
-
-
-
 
     def benchmark_apsp(self):
         benchmark_apsp(self.network)
@@ -1871,9 +1858,6 @@ class UI:
             seq_type
         )
         
-        
-        
-        
     def find_shortest_path_distance(self, from_node_id, to_node_id,
                                 ):
         """ return shortest path network between all nodes
@@ -1885,17 +1869,6 @@ class UI:
 
         to_node_id
             the ending node id, which shall be a string
-
-        seq_type
-            'node' or 'link'. You will get the shortest path in sequence of
-            either node IDs or link IDs. The default is 'node'.
-
-        mode
-            the target transportation mode which is defined in settings.yml. It
-            can be either agent type or its name. For example, 'w' and 'walk'
-            are equivalent inputs.
-
-            The default is 'all', which means that links are open to all modes.
 
         Returns
         -------
@@ -1939,8 +1912,7 @@ class UI:
             output_dir,  
             output_type
         )
-
-
+        
     def get_accessible_nodes(self,
                              source_node_id,
                              time_budget,

@@ -233,8 +233,7 @@ def single_source_shortest_path(G, origin_node_id,
 
     if engine_type.lower() == 'c':
         G.allocate_for_CAPI()
-        _optimal_label_correcting_CAPI(G, origin_node_no)
-        
+        _optimal_label_correcting_CAPI(G, origin_node_no)  
     else:
         # just in case user uses C++ and Python path engines in a mixed way
         G.has_capi_allocated = False
@@ -289,10 +288,12 @@ def output_path_sequence(G, to_node_id, type='node'):
         for link_no in reversed(path):
             yield G.links[link_no].get_link_id()
 
+
 def _get_path_cost(G, to_node_id):
     to_node_no = G.map_id_to_no[to_node_id]
 
     return G.node_label_cost[to_node_no]
+
 
 def find_shortest_path(G, from_node_id, to_node_id, seq_type='node'):
     if from_node_id not in G.map_id_to_no:
@@ -324,12 +325,6 @@ def find_shortest_path_distance(G, from_node_id, to_node_id):
     if to_node_id not in G.map_id_to_no:
         #return None
         raise Exception(f'Node ID: {to_node_id} not in the network')
-    
-    '''
-    #Convert network lenghts to fftt in minutes
-    for i in range(G.link_size):
-        G.links[i].length = G.links[i].fftt
-    '''
     
     single_source_shortest_path(G, from_node_id, engine_type='c')
 
@@ -371,10 +366,8 @@ def create_numpy_matrix_parallel(G, nodes):
     # Use joblib with tqdm for parallel computation
     skim_matrix = Parallel(n_jobs=-1)(
         delayed(compute_row_distances)(G, row_node, nodes)  # Corrected function call
-        for row_node in tqdm(nodes, desc="Computing shortest paths")
-    )
+        for row_node in tqdm(nodes, desc="Computing shortest paths"))
     
-
     elapsed_time = time.time() - start_time
     print(f"Matrix Creation Time: {elapsed_time:.2f} s")
 
@@ -429,9 +422,6 @@ def save_as_zip(df_matrix, output_path, csv_filename):
 
     print(f"Matrix Zipfile saved to {output_path}")
 
-
-
-############# Work in progress code################
 def find_shortest_path_network(G, output_dir, output_type):
     """
     Reads network files, computes the shortest path distance matrix, and saves it in the desired format.
@@ -442,6 +432,7 @@ def find_shortest_path_network(G, output_dir, output_type):
     """
     
     #Convert network lenghts to fftt in minutes
+    #This currently doesn't function as it should. 
     for i in range(G.link_size):
         G.links[i].length = G.links[i].fftt
 
@@ -469,15 +460,6 @@ def find_shortest_path_network(G, output_dir, output_type):
     elif output_type == ".zip":
         csv_filename = "shortest_path_matrix.csv"
         save_as_zip(df_skim_matrix, output_path, csv_filename)
-
-
-
-### End work in progress###
-
-
-
-
-
 
 def find_path_for_agents(G, column_pool, engine_type='c'):
     """ find and set up shortest path for each agent
