@@ -326,9 +326,22 @@ def find_shortest_path_distance(G, from_node_id, to_node_id):
         #return None
         raise Exception(f'Node ID: {to_node_id} not in the network')
     
+    '''
+    nodes = np.array([G.nodes[i].node_id for i in range(G.node_size)])
+    row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
+    print (nodes)
+     
+    for i in range(190,210):   #G.node_size
+        if G.nodes[i].zone_id is not " ":
+            print(G.nodes[i].zone_id)
+    #Only use node if it is a centroid.
+    for i in range(G.node_size): 
+        if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit():  
+            print(G.nodes[i].zone_id)
+    '''
     single_source_shortest_path(G, from_node_id, engine_type='c')
-
-    path_cost = _get_path_cost(G, to_node_id)
+    
+    path_cost = _get_path_cost(G, to_node_id) #[_get_path_cost(G, col_node) for col_node in nodes] #
   
     if path_cost >= MAX_LABEL_COST:
         return 9999999
@@ -347,10 +360,10 @@ def compute_row_distances(G, row_node, nodes):
     Returns:
         list: List of shortest path distances.
     """
-    return [find_shortest_path_distance(G, row_node, col_node) for col_node in nodes]
+    return [find_shortest_path_distance(G, row_node, col_node) for col_node in nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
 
 
-def create_numpy_matrix_parallel(G, nodes):
+def create_numpy_matrix_parallel(G, nodes, row_nodes):
     """
     Creates a shortest path distance matrix using parallel processing.
 
@@ -366,7 +379,7 @@ def create_numpy_matrix_parallel(G, nodes):
     # Use joblib with tqdm for parallel computation
     skim_matrix = Parallel(n_jobs=-1)(
         delayed(compute_row_distances)(G, row_node, nodes)  # Corrected function call
-        for row_node in tqdm(nodes, desc="Computing shortest paths"))
+        for row_node in tqdm(row_nodes, desc="Computing shortest paths"))
     
     elapsed_time = time.time() - start_time
     print(f"Matrix Creation Time: {elapsed_time:.2f} s")
@@ -438,12 +451,15 @@ def find_shortest_path_network(G, output_dir, output_type):
 
     # Convert node IDs to a NumPy array
     nodes = np.array([G.nodes[i].node_id for i in range(G.node_size)])
+    
+    # Will compute skim for centroids only, checking the zone_id column for nonempty.
+    row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
 
     # Compute shortest path matrix in parallel
-    skim_matrix = create_numpy_matrix_parallel(G, nodes)
+    skim_matrix = create_numpy_matrix_parallel(G, nodes,row_nodes)
 
     # Convert matrix to DataFrame
-    df_skim_matrix = pd.DataFrame(skim_matrix, index=nodes, columns=nodes)
+    df_skim_matrix = pd.DataFrame(skim_matrix, index=row_nodes, columns=nodes)
 
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
