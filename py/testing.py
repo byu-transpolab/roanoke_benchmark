@@ -22,18 +22,16 @@ if minutes == "yes":
     ### Convert lengths of road into travel time at FFSpeed ###
     df_link.length = (df_link.length / df_link.free_speed) * 60  # Convert travel time to minutes
     df_link.to_csv(link_file, index=False)
-   
-   
-   
 
 
 #Read link and nodes into network
 nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
-x = 130
-y = 3509
+x = 2
+y = 5472
 
 print(nt.find_shortest_path_distance(x,y))
-#print(nt.find_shortest_path_distance(y,x))
+print(nt.find_shortest_path(x,y))
+
 
 
 if minutes == "yes":
@@ -41,9 +39,10 @@ if minutes == "yes":
     df_link.length = (df_link.length / 60) * df_link.free_speed 
     df_link.to_csv(link_file, index=False)
 
+
 '''
 
-   ###### Find Shortest Path Network########
+###### Find Shortest Path Network########
 #Read link and nodes into network
 nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 

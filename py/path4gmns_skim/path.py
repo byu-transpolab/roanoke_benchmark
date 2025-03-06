@@ -326,22 +326,9 @@ def find_shortest_path_distance(G, from_node_id, to_node_id):
         #return None
         raise Exception(f'Node ID: {to_node_id} not in the network')
     
-    '''
-    nodes = np.array([G.nodes[i].node_id for i in range(G.node_size)])
-    row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
-    print (nodes)
-     
-    for i in range(190,210):   #G.node_size
-        if G.nodes[i].zone_id is not " ":
-            print(G.nodes[i].zone_id)
-    #Only use node if it is a centroid.
-    for i in range(G.node_size): 
-        if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit():  
-            print(G.nodes[i].zone_id)
-    '''
     single_source_shortest_path(G, from_node_id, engine_type='c')
     
-    path_cost = _get_path_cost(G, to_node_id) #[_get_path_cost(G, col_node) for col_node in nodes] #
+    path_cost = _get_path_cost(G, to_node_id)
   
     if path_cost >= MAX_LABEL_COST:
         return 9999999
@@ -443,11 +430,6 @@ def find_shortest_path_network(G, output_dir, output_type):
         output_dir (str): Directory to save the output files.
         output_type (str): Desired output format (".csv", ".omx", ".zip").
     """
-    
-    #Convert network lenghts to fftt in minutes
-    #This currently doesn't function as it should. 
-    for i in range(G.link_size):
-        G.links[i].length = G.links[i].fftt
 
     # Convert node IDs to a NumPy array
     nodes = np.array([G.nodes[i].node_id for i in range(G.node_size)])
@@ -458,7 +440,7 @@ def find_shortest_path_network(G, output_dir, output_type):
     # Compute shortest path matrix in parallel
     skim_matrix = create_numpy_matrix_parallel(G, nodes,row_nodes)
 
-    # Convert matrix to DataFrame
+    # Convert matrix to DataFrame, using row_nodes and total number of nodes
     df_skim_matrix = pd.DataFrame(skim_matrix, index=row_nodes, columns=nodes)
 
     # Create output directory if it doesn't exist
