@@ -32,6 +32,11 @@ def factype_to_string(factype_value):
         return factype_dict.get(factype_value, f'unknown_type')  #_{factype_value}
     return 'Invalid FACTYPE'
 
+
+
+
+
+
 # Function to create 'allowed_uses' column based on conditions 
 def create_allowed_uses_column(df):
     allowed_uses = []
@@ -45,7 +50,7 @@ def create_allowed_uses_column(df):
         
         # Check for PED_PHB column (if it has 'Y')
         if 'ped_phb' in row and row['ped_phb'] == 'Y':
-            use_parts.append('w')
+            use_parts.append('p')
         
         # Check for BIKE_FAC column (if it has any non-null, non-empty value)
         if 'bike_facility' in row and pd.notnull(row['bike_facility']) and row['bike_facility'] != '':
@@ -56,13 +61,49 @@ def create_allowed_uses_column(df):
         
         # If no uses were added, assign 'cwbt'
         if not allowed_uses_value:
-            allowed_uses_value = 'cwbt'
+            allowed_uses_value = 'cpbt'
         
         allowed_uses.append(allowed_uses_value)
     
     # Assign the list as a new 'allowed_uses' column in the DataFrame
     df['allowed_uses'] = allowed_uses
     return df
+
+# Function to create use group file based off the modes given in allowed uses. 
+def create_use_group_file(csv_file, output_csv):
+    df = pd.read_csv(csv_file)
+    
+    if 'allowed_uses' not in df.columns:
+        print("Error: 'allowed_uses' column not found in the input file.")
+        return
+    
+    # Extract unique allowed uses
+    unique_uses = df['allowed_uses'].unique()
+    
+    # Define valid modes and their descriptions
+    mode_info = {
+        "c": ("Car", "auto"),
+        "p": ("Pedestrian", "aux. transit"),
+        "b": ("Bike", "aux. transit"),
+        "t": ("Transit", "transit")
+    }
+    
+    # Extract unique modes by checking if c, p, b, or t appears in allowed_uses
+    unique_modes = set()
+    for uses in df['allowed_uses'].dropna().astype(str):
+        for char in uses:  # Iterate over each character
+            if char in mode_info:
+                unique_modes.add((char, mode_info[char][0], mode_info[char][1]))
+            else:
+                unique_modes.add((char, "unknown type", "aux. transit"))
+
+    # Create a DataFrame with mode, description, and type
+    use_group_df = pd.DataFrame(unique_modes, columns=['mode', 'description', 'type'])
+
+    # Save the result to CSV
+    use_group_df.to_csv(output_csv, index=False)
+    print(f"Use group file saved to {output_csv}")
+
 
 # Function to remove duplicate rows based on the 'ID' column
 def remove_duplicate_ids(df):
@@ -233,7 +274,10 @@ if __name__ == "__main__":
         # Convert nodes DBF to CSV
         dbfnodes_to_csv('hwy/src/nodes_from_cube.dbf', 'hwy/src/nodes_from_cube.csv')
         print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
- 
+
+        # Create use_group CSV
+        create_use_group_file('hwy/link.csv', 'hwy/use_group.csv')
+        
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
         merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'hwy/zones.csv', 'hwy/node.csv')

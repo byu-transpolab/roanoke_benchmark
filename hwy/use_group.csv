@@ -1,0 +1,5 @@
+mode,description,type
+t,Transit,transit
+p,Pedestrian,aux. transit
+b,Bike,aux. transit
+c,Car,auto

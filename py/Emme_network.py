@@ -10,6 +10,7 @@ import inro.modeller as _m
 emme_project = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\EMME Network\Roanoke\Roanoke.emp"
 nodes_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\node.csv"
 links_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\link.csv"
+use_group_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\use_group.csv"
 
 # Start EMME session
 my_desktop = _app.start_dedicated(project=emme_project, visible=True, user_initials="KMS")
@@ -25,6 +26,15 @@ links_df = pd.read_csv(links_file)
 # Get active scenario and network
 my_scenario = my_modeller.scenario
 network = my_scenario.get_network()
+
+
+# Create the modes table using the use_group_file
+
+# Code
+# Codey
+# Coding
+# Very nice code
+
 
 # Create network fields if not already present
 create_field = my_modeller.tool("inro.emme.data.network_field.create_network_field")
