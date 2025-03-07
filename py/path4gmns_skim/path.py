@@ -335,7 +335,7 @@ def find_shortest_path_distance(G, from_node_id, to_node_id):
     else:
        return path_cost
 
-def compute_row_distances(G, row_node, nodes):
+def compute_row_distances(G, row_node, row_nodes):
     """
     Computes the shortest path distances from a single node to all other nodes.
 
@@ -347,10 +347,10 @@ def compute_row_distances(G, row_node, nodes):
     Returns:
         list: List of shortest path distances.
     """
-    return [find_shortest_path_distance(G, row_node, col_node) for col_node in nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
+    return [find_shortest_path_distance(G, row_node, col_node) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
 
 
-def create_numpy_matrix_parallel(G, nodes, row_nodes):
+def create_numpy_matrix_parallel(G, row_nodes):
     """
     Creates a shortest path distance matrix using parallel processing.
 
@@ -365,7 +365,7 @@ def create_numpy_matrix_parallel(G, nodes, row_nodes):
 
     # Use joblib with tqdm for parallel computation
     skim_matrix = Parallel(n_jobs=-1)(
-        delayed(compute_row_distances)(G, row_node, nodes)  # Corrected function call
+        delayed(compute_row_distances)(G, row_node, row_nodes)  # Corrected function call
         for row_node in tqdm(row_nodes, desc="Computing shortest paths"))
     
     elapsed_time = time.time() - start_time
@@ -373,13 +373,13 @@ def create_numpy_matrix_parallel(G, nodes, row_nodes):
 
     return np.array(skim_matrix)
 
-def save_as_omx(matrix, nodes, output_path):
+def save_as_omx(matrix, row_nodes, output_path):
     """
     Saves the shortest path matrix as an OMX file.
 
     Parameters:
         matrix (np.ndarray): The shortest path matrix.
-        nodes (np.ndarray): Array of node IDs.
+        row_nodes (np.ndarray): Array of node IDs.
         output_path (str): Path to save the OMX file.
     """
     with omx.open_file(output_path, "w") as omx_out:
@@ -389,7 +389,7 @@ def save_as_omx(matrix, nodes, output_path):
             title="Shortest Path Distance Matrix",
             attrs={"Description": "This matrix contains the shortest path distances between nodes"},
         )
-        omx_out.create_mapping("nodes", nodes)
+        omx_out.create_mapping("nodes", row_nodes)
 
     print(f"Matrix saved as OMX file: {output_path}")
 
@@ -430,18 +430,19 @@ def find_shortest_path_network(G, output_dir, output_type):
         output_dir (str): Directory to save the output files.
         output_type (str): Desired output format (".csv", ".omx", ".zip").
     """
-
-    # Convert node IDs to a NumPy array
-    nodes = np.array([G.nodes[i].node_id for i in range(G.node_size)])
+    # Check to make sure output_type is an accepted type.
+    valid_types = {".omx", ".csv", ".zip"}
+    if output_type not in valid_types:
+        raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of {valid_types}.")
     
     # Will compute skim for centroids only, checking the zone_id column for nonempty.
     row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
 
     # Compute shortest path matrix in parallel
-    skim_matrix = create_numpy_matrix_parallel(G, nodes,row_nodes)
+    skim_matrix = create_numpy_matrix_parallel(G,row_nodes)
 
     # Convert matrix to DataFrame, using row_nodes and total number of nodes
-    df_skim_matrix = pd.DataFrame(skim_matrix, index=row_nodes, columns=nodes)
+    df_skim_matrix = pd.DataFrame(skim_matrix, index=row_nodes, columns=row_nodes)
 
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -450,7 +451,7 @@ def find_shortest_path_network(G, output_dir, output_type):
     output_path = os.path.join(output_dir, f"{"shortest_path_matrix"}{output_type}")
 
     if output_type == ".omx":
-        save_as_omx(skim_matrix, nodes, output_path)
+        save_as_omx(skim_matrix, row_nodes, output_path)
 
     elif output_type == ".csv":
         save_as_csv(df_skim_matrix, output_path)
@@ -458,6 +459,8 @@ def find_shortest_path_network(G, output_dir, output_type):
     elif output_type == ".zip":
         csv_filename = "shortest_path_matrix.csv"
         save_as_zip(df_skim_matrix, output_path, csv_filename)
+    else:
+        raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of ['.omx', '.csv', '.zip'].")
 
 def find_path_for_agents(G, column_pool, engine_type='c'):
     """ find and set up shortest path for each agent
