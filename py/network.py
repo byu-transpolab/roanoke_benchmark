@@ -82,10 +82,10 @@ def create_use_group_file(csv_file, output_csv):
     
     # Define valid modes and their descriptions
     mode_info = {
-        "c": ("Car", "auto"),
-        "p": ("Pedestrian", "aux. transit"),
-        "b": ("Bike", "aux. transit"),
-        "t": ("Transit", "transit")
+        "c": ("Car", "AUTO"),
+        "p": ("Pedestrian", "AUX_TRANSIT"),
+        "b": ("Bike", "AUX_TRANSIT"),
+        "t": ("Transit", "TRANSIT")
     }
     
     # Extract unique modes by checking if c, p, b, or t appears in allowed_uses

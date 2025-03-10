@@ -7,7 +7,7 @@ import inro.emme.desktop.app as _app
 import inro.modeller as _m
 
 # Define paths
-emme_project = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\EMME Network\Roanoke\Roanoke.emp"
+emme_project = r"C:\Users\kmsquire\source\EMME networks\Roanoke\Roanoke.emp"
 nodes_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\node.csv"
 links_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\link.csv"
 use_group_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\use_group.csv"
@@ -19,6 +19,7 @@ my_modeller = _m.Modeller(my_desktop)
 # Load CSV data
 nodes_df = pd.read_csv(nodes_file)
 links_df = pd.read_csv(links_file)
+modes_df = pd.read_csv(use_group_file)
 
 
 #Do not delete any code above this
@@ -36,45 +37,63 @@ network = my_scenario.get_network()
 # Very nice code
 
 
-# Create network fields if not already present
-create_field = my_modeller.tool("inro.emme.data.network_field.create_network_field")
+#Create Modes table
+for _, row in modes_df.iterrows():
+    mode_id = row['mode']
+    description = row['description']
+    mode_type = row['type']  # "AUTO", "TRANSIT", or "AUXILIARY"
+    
+    if not network.mode(mode_id):
+        # Create mode with only id and type
+        mode = network.create_mode(id=mode_id, type=mode_type)
+        mode.description = description  # Set description separately
 
-for column in nodes_df.columns:
-    if column not in ["node_id"]:
-        create_field(network_field_type="NODE", network_field_atype="REAL",
-                     network_field_name=f"#{column}", network_field_description=column, overwrite=True)
 
-for column in links_df.columns:
-    if column not in ["link_id", "from_node_id", "to_node_id", "directed", "allowed_uses"]:
-        create_field(network_field_type="LINK", network_field_atype="REAL",
-                     network_field_name=f"#{column}", network_field_description=column, overwrite=True)
+#Create Nodes
+for i, row in nodes_df.iterrows():
+    node_id = row['node_id']
+    x_coord = row['x_coord']
+    y_coord = row['y_coord']
+    zone_id = row['zone_id']
+    is_centroid = row['is_centroid']
+    
+    if network._nodes[node_id]:
+        #node = network.create_node(id=node_id,  is_centroid=is_centroid) ALREADY CREATED???
+        network._nodes[node_id].x = x_coord
+        network._nodes[node_id].y = y_coord
+        network._nodes[node_id].data1 = zone_id #For now saved under data1
 
-# Add nodes
-for _, row in nodes_df.iterrows():
-    node = network.create_node(row["node_id"], is_centroid=row["is_centroid"])
-    for column in nodes_df.columns:
-        if column not in ["node_id", "is_centroid"]:
-            node[f"#{column}"] = row[column]
 
-# Get valid mode IDs in scenario
-defined_modes = {mode.id for mode in my_scenario.modes()}
-
-# Add links
+''' Work in progress
+#Create Links
 for _, row in links_df.iterrows():
-    from_node = network.node(row["from_node_id"])
-    to_node = network.node(row["to_node_id"])
+    link_id = row['link_id']
+    from_node = row['from_node_id']
+    to_node = row['to_node_id']
+    length = row['length']
+    link_type = row['link_type']
+    capacity = row['capacity']
+    free_speed = row['free_speed']
+    lanes = row['lanes']
+    allowed_uses = row['allowed_uses']
 
-    if from_node and to_node:  # Ensure both nodes exist
-        modes = "".join([char for char in str(row["allowed_uses"]) if char in defined_modes])
-        if not modes:
-            modes = "a"  # Default mode if none valid
-
-        link = network.create_link(row["from_node_id"], row["to_node_id"], modes=modes)
+    if not network.link(from_node, to_node):
+        link = network.create_link(i_node_id=from_node, j_node_id=to_node, 
+                                   modes = allowed_uses )
+        network._links[from_node + "-" + to_node].length = length
         
-        for column in links_df.columns:
-            if column not in ["link_id", "from_node_id", "to_node_id", "directed", "allowed_uses"]:
-                link[f"#{column}"] = row[column]
 
-# Save network
+capacity=capacity, 
+free_speed=free_speed,
+lanes=lanes
+length=length
+link_type=link_type
+
+ # Assign allowed uses (modes)
+        for mode in allowed_uses.split(','):
+            if mode.strip():
+                link.modes |= {network.mode(mode.strip())}
+'''
+
 my_scenario.publish_network(network)
-print("Network successfully created.")
+
