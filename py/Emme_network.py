@@ -1,6 +1,4 @@
 
-# Press windows+r, type cmd, and hit enter. To run the code using the EMME python, run "C:\Program Files\Bentley\OpenPaths\EMME 24.00.00\Python311\python.exe" "C:\Users\kmsquire\source\repos\roanoke_benchmark\py\Emme_network.py"
-
 
 import pandas as pd
 import inro.emme.desktop.app as _app
@@ -64,36 +62,58 @@ for i, row in nodes_df.iterrows():
         network._nodes[node_id].data1 = zone_id #For now saved under data1
 
 
-''' Work in progress
+#The code as it is will create the link file. However, it will only populate the From, To, and Modes columns. 
+#It does not populate the length, type, or lanes columns, and I do not know why.
+
+#Work in progress
 #Create Links
+
+""" link_type_map = {
+    'interstate_principal_freeway': 1,
+    'minor_freeway': 2,
+    'principal_arterial': 3,
+    'major_arterial': 4,
+    'minor_arterial': 5,
+    'major_collector': 6,
+    'minor_collector': 7,
+    'local': 8,
+    'highspeed_ramp': 9,
+    'lowspeed_ramp': 10,
+    'centroid_connector': 11,
+    'external_station_connector': 12
+}
+
+# Create Links
 for _, row in links_df.iterrows():
-    link_id = row['link_id']
     from_node = row['from_node_id']
     to_node = row['to_node_id']
-    length = row['length']
+    length = float(row['length']) if not pd.isna(row['length']) else 0.0
     link_type = row['link_type']
     capacity = row['capacity']
     free_speed = row['free_speed']
-    lanes = row['lanes']
+    num_lanes = row['lanes']
     allowed_uses = row['allowed_uses']
 
     if not network.link(from_node, to_node):
-        link = network.create_link(i_node_id=from_node, j_node_id=to_node, 
-                                   modes = allowed_uses )
-        network._links[from_node + "-" + to_node].length = length
+        # Create the link without num_lanes or type (set those after creation)
+        link = network.create_link(i_node=from_node, j_node=to_node, length=length)
+
+        # Set additional link attributes
+        link.capacity = capacity
+        link.free_speed = free_speed
+        link.num_lanes = num_lanes  # Set num_lanes separately
         
+        # Convert link_type string to integer
+        link.type = link_type_map.get(link_type, 0)  # Default to 0 if no match
 
-capacity=capacity, 
-free_speed=free_speed,
-lanes=lanes
-length=length
-link_type=link_type
-
- # Assign allowed uses (modes)
+        # Assign allowed uses (modes)
         for mode in allowed_uses.split(','):
-            if mode.strip():
-                link.modes |= {network.mode(mode.strip())}
-'''
+            if mode.strip() and network.mode(mode.strip()):
+                link.modes |= {network.mode(mode.strip())} """
+
+
+
 
 my_scenario.publish_network(network)
+print ("Network succesfully imported!")
 
