@@ -6,7 +6,8 @@ from math import ceil, floor
 from random import choice, randint
 
 from .consts import EPSILON, MAX_LABEL_COST, SECONDS_IN_MINUTE, SECONDS_IN_HOUR
-from .path import find_path_for_agents, find_shortest_path, find_shortest_path_distance,find_shortest_path_network, \
+from .path import find_path_for_agents, find_shortest_path, \
+                  get_shortest_path_tree, get_shortest_path,find_shortest_path_network, \
                   single_source_shortest_path, benchmark_apsp
 
 
@@ -409,6 +410,8 @@ class Network:
         self.centroids_added = False
         # key: simulation interval, value: agent id
         self.td_agents = {}
+        self.len_unit_cf = 1
+        self.len_unit = 'mi'
 
     def update(self):
         self.node_size = len(self.nodes)
@@ -479,6 +482,16 @@ class Network:
         self.allowed_uses = char_arr_link(*allowed_uses)
 
         self.capi_allocated = True
+        
+    def init_link_costs(self, cost_type='time'):
+        if cost_type == 'time':
+            link_costs = [link.fftt for link in self.links]
+        else:
+            link_costs = [link.length for link in self.links]
+
+        double_arr_link = ctypes.c_double * self.get_link_size()
+        self.link_cost_array = double_arr_link(*link_costs)
+
 
     def add_centroids_connectors(self):
         if self.centroids_added:
@@ -758,6 +771,16 @@ class Network:
                 continue
 
             yield v.get_centroid()
+            
+    def get_length_unit(self):
+        return self.len_unit
+
+    def get_path_cost(self, to_node_id, cost_type='time'):
+        to_node_no = self.map_id_to_no[to_node_id]
+        if cost_type == 'time':
+            return self.node_label_cost[to_node_no]
+
+        return self.node_label_cost[to_node_no] * self.len_unit_cf
 
     def have_dep_agents(self, i):
         return i in self.td_agents
@@ -1497,7 +1520,7 @@ class Assignment:
 
         find_path_for_agents(self.network, self.column_pool)
 
-    def find_shortest_path(self, from_node_id, to_node_id, mode, seq_type='node'):
+    def find_shortest_path(self, from_node_id, to_node_id, mode, seq_type, cost_type):
         """ call find_shortest_path() from path.py
 
         exceptions will be handled in find_shortest_path()
@@ -1511,21 +1534,33 @@ class Assignment:
         to_node_id = str(to_node_id)
 
         return find_shortest_path(self.network, from_node_id,
-                                  to_node_id, seq_type)
+                                  to_node_id, seq_type, cost_type)
         
-    def find_shortest_path_distance(self, from_node_id, to_node_id):
-        """ call find_shortest_path_distance() from path.py
+    def get_shortest_path_tree(self, from_node_id, cost_type):
+        # reset agent type str or mode according to user's input
+        #at_name, _ = self._convert_mode(mode)
+        #self.network.set_agent_type_name(at_name)
 
-        exceptions will be handled in find_shortest_path_distance()
+        # add backward compatibility in case the user still use integer node id's
+        from_node_id = str(from_node_id)
+
+        return get_shortest_path_tree(self.network, 
+                                      from_node_id,
+                                      cost_type)
+        
+    def get_shortest_path(self, from_node_id, to_node_id, cost_type):
+        """ call get_shortest_path() from path.py
+
+        exceptions will be handled in get_shortest_path()
         """
         # add backward compatibility in case the user still use integer node id's
         from_node_id = str(from_node_id)
         to_node_id = str(to_node_id)
 
-        return find_shortest_path_distance(self.network, from_node_id,
-                                  to_node_id)
+        return get_shortest_path(self.network, from_node_id,
+                                  to_node_id, cost_type)
         
-    def find_shortest_path_network(self, output_dir, output_type):
+    def find_shortest_path_network(self, output_dir, output_type, cost_type):
         """ call find_shortest_path_network() from path.py
 
         exceptions will be handled in find_shortest_path_netowrk()
@@ -1533,7 +1568,8 @@ class Assignment:
 
         return find_shortest_path_network(self.network, 
                                           output_dir,  
-                                          output_type)
+                                          output_type,
+                                          cost_type)
 
     def benchmark_apsp(self):
         benchmark_apsp(self.network)
@@ -1819,7 +1855,7 @@ class UI:
         return self._base_assignment.find_path_for_agents(mode)
 
     def find_shortest_path(self, from_node_id, to_node_id,
-                           mode='all', seq_type='node'):
+                           mode='all', seq_type='node', cost_type='time'):
         """ return shortest path between from_node_id and to_node_id
 
         Parameters
@@ -1830,16 +1866,20 @@ class UI:
         to_node_id
             the ending node id, which shall be a string
 
-        seq_type
-            'node' or 'link'. You will get the shortest path in sequence of
-            either node IDs or link IDs. The default is 'node'.
-
         mode
             the target transportation mode which is defined in settings.yml. It
             can be either agent type or its name. For example, 'w' and 'walk'
             are equivalent inputs.
 
             The default is 'all', which means that links are open to all modes.
+
+        seq_type
+            'node' or 'link'. You will get the shortest path in sequence of
+            either node IDs or link IDs. The default is 'node'.
+
+        cost_type
+            'time' or 'distance'. find the shortest path according travel time
+            or travel distance.
 
         Returns
         -------
@@ -1855,10 +1895,14 @@ class UI:
             from_node_id,
             to_node_id,
             mode,
-            seq_type
+            seq_type,
+            cost_type
         )
         
-    def find_shortest_path_distance(self, from_node_id, to_node_id,
+    def get_shortest_path(self, 
+                                    from_node_id, 
+                                    to_node_id,
+                                    cost_type
                                 ):
         """ return shortest path network between all nodes
 
@@ -1880,12 +1924,13 @@ class UI:
             Exceptions will be thrown if either of from_node_id and and to_node_id
             is not valid node IDs.
         """
-        return self._base_assignment.find_shortest_path_distance(
+        return self._base_assignment.get_shortest_path(
             from_node_id,
             to_node_id,
+            cost_type
         )
 
-    def find_shortest_path_network(self, output_dir, output_type):
+    def find_shortest_path_network(self, output_dir, output_type, cost_type):
         """ return shortest path network between all nodes
 
         Parameters
@@ -1896,6 +1941,9 @@ class UI:
             
         output_type
             Choose between ".csv", ".omx", or ".zip" file formate
+            
+        cost_type
+            Choose between "time" or "distance"
             
         Returns
         -------
@@ -1910,7 +1958,20 @@ class UI:
         """
         return self._base_assignment.find_shortest_path_network( 
             output_dir,  
-            output_type
+            output_type,
+            cost_type
+        )
+        
+    def get_shortest_path_tree(self, 
+                               from_node_id, 
+                               cost_type='time'):
+        
+        
+        
+        
+        return self._base_assignment.get_shortest_path_tree(
+            from_node_id,   
+            cost_type
         )
         
     def get_accessible_nodes(self,

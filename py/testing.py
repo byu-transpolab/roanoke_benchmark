@@ -1,7 +1,6 @@
 
 
 import path4gmns_skim as pg
-import pandas as pd
 
 # Source Files
 input_dir = "hwy"
@@ -13,19 +12,23 @@ output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
 #File paths for read_network
 link_file = 'hwy/link.csv'      
 node_file = 'hwy/node.csv'
-df_link = pd.read_csv(link_file)
-df_node = pd.read_csv(node_file) 
 
 ###### Find Shortest Path Network########
 #Read link and nodes into network
 nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
-#Compute skim
-nt.find_shortest_path_network(output_dir, output_type)
+cost_type = "time" # Set to the cost type for skim.
+
+nt.find_shortest_path_network(output_dir, output_type, cost_type)
 
 
 
 '''
+#Compute skim
+#print(nt.find_shortest_path(2, 5472,"all", "node", cost_type))
+#print(nt.get_shortest_path(2,5472,cost_type))
+#print(nt.get_shortest_path_tree(1, "time"))
+
 minutes = "no" 
 if minutes == "yes":
     ### Convert lengths of road into travel time at FFSpeed ###
