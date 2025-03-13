@@ -68,7 +68,7 @@ for i, row in nodes_df.iterrows():
 #Work in progress
 #Create Links
 
-""" link_type_map = {
+link_type_map = {
     'interstate_principal_freeway': 1,
     'minor_freeway': 2,
     'principal_arterial': 3,
@@ -83,36 +83,36 @@ for i, row in nodes_df.iterrows():
     'external_station_connector': 12
 }
 
-# Create Links
+
+
 for _, row in links_df.iterrows():
+    link_id = row['link_id']
     from_node = row['from_node_id']
     to_node = row['to_node_id']
-    length = float(row['length']) if not pd.isna(row['length']) else 0.0
+    length = row['length']
     link_type = row['link_type']
     capacity = row['capacity']
     free_speed = row['free_speed']
-    num_lanes = row['lanes']
+    lanes = row['lanes']
     allowed_uses = row['allowed_uses']
 
     if not network.link(from_node, to_node):
-        # Create the link without num_lanes or type (set those after creation)
-        link = network.create_link(i_node=from_node, j_node=to_node, length=length)
-
-        # Set additional link attributes
-        link.capacity = capacity
-        link.free_speed = free_speed
-        link.num_lanes = num_lanes  # Set num_lanes separately
+        link = network.create_link(i_node_id=from_node, j_node_id=to_node, 
+                                   modes = allowed_uses )
+        #network._links[from_node + "-" + to_node].length = length
         
-        # Convert link_type string to integer
-        link.type = link_type_map.get(link_type, 0)  # Default to 0 if no match
+'''
+capacity=capacity, 
+free_speed=free_speed,
+lanes=lanes
+length=length
+link_type=link_type
 
-        # Assign allowed uses (modes)
-        for mode in allowed_uses.split(','):
-            if mode.strip() and network.mode(mode.strip()):
-                link.modes |= {network.mode(mode.strip())} """
-
-
-
+ # Assign allowed uses (modes)
+    for mode in allowed_uses.split(','):
+        if mode.strip():
+            link.modes |= {network.mode(mode.strip())}
+'''
 
 my_scenario.publish_network(network)
 print ("Network succesfully imported!")
