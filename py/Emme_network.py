@@ -1,4 +1,4 @@
-
+#Create an empty EMME network
 
 import pandas as pd
 import inro.emme.desktop.app as _app
@@ -20,54 +20,39 @@ links_df = pd.read_csv(links_file)
 modes_df = pd.read_csv(use_group_file)
 
 
-#Do not delete any code above this
-
 # Get active scenario and network
 my_scenario = my_modeller.scenario
 network = my_scenario.get_network()
 
+#Delete any existing links, nodes, and modes.
+for i, row in nodes_df.iterrows():
+    if network.node(row['node_id']):  # Check if the node exists
+        network.delete_node(id=row['node_id'], cascade=True)
 
-# Create the modes table using the use_group_file
+for i, row in modes_df.iterrows():
+    if network.mode(row['mode']):  # Check if the mode exists
+        network.delete_mode(id=row['mode'], cascade=True)
 
-# Code
-# Codey
-# Coding
-# Very nice code
+for i, row in links_df.iterrows():
+    if network.link(row['from_node_id'], row['to_node_id']):  # Check if the link exists
+        network.delete_link(i_node_id=row['from_node_id'], j_node_id=row['to_node_id'], cascade=True)
 
 
 #Create Modes table
 for _, row in modes_df.iterrows():
-    mode_id = row['mode']
-    description = row['description']
-    mode_type = row['type']  # "AUTO", "TRANSIT", or "AUXILIARY"
-    
-    if not network.mode(mode_id):
-        # Create mode with only id and type
-        mode = network.create_mode(id=mode_id, type=mode_type)
-        mode.description = description  # Set description separately
+    mode = network.create_mode(id=row['mode'], type=row['type'])
+    mode['description'] = row['description']  # Set description separately
 
 
 #Create Nodes
 for i, row in nodes_df.iterrows():
-    node_id = row['node_id']
-    x_coord = row['x_coord']
-    y_coord = row['y_coord']
-    zone_id = row['zone_id']
-    is_centroid = row['is_centroid']
-    
-    if network._nodes[node_id]:
-        #node = network.create_node(id=node_id,  is_centroid=is_centroid) ALREADY CREATED???
-        network._nodes[node_id].x = x_coord
-        network._nodes[node_id].y = y_coord
-        network._nodes[node_id].data1 = zone_id #For now saved under data1
+    node = network.create_node(id=row['node_id'],  is_centroid= row['is_centroid']) 
+    node['x'] = row['x_coord']
+    node['y'] = row['y_coord']
+    node['data1'] = row['zone_id']
 
 
-#The code as it is will create the link file. However, it will only populate the From, To, and Modes columns. 
-#It does not populate the length, type, or lanes columns, and I do not know why.
-
-#Work in progress
-#Create Links
-
+#Map the link_type if it is in a string in the link.csv file
 link_type_map = {
     'interstate_principal_freeway': 1,
     'minor_freeway': 2,
@@ -80,40 +65,18 @@ link_type_map = {
     'highspeed_ramp': 9,
     'lowspeed_ramp': 10,
     'centroid_connector': 11,
-    'external_station_connector': 12
-}
+    'external_station_connector': 12,
+    'unknown_type': 13}
 
-
-
+#Create Links
 for _, row in links_df.iterrows():
-    link_id = row['link_id']
-    from_node = row['from_node_id']
-    to_node = row['to_node_id']
-    length = row['length']
-    link_type = row['link_type']
-    capacity = row['capacity']
-    free_speed = row['free_speed']
-    lanes = row['lanes']
-    allowed_uses = row['allowed_uses']
+    link = network.create_link(i_node_id=row['from_node_id'],j_node_id=row['to_node_id'],modes=row['allowed_uses'])
+    link['num_lanes']=row['lanes']
+    link['length']=row['length']
+    link['type'] = link_type_map.get(row['link_type'])
 
-    if not network.link(from_node, to_node):
-        link = network.create_link(i_node_id=from_node, j_node_id=to_node, 
-                                   modes = allowed_uses )
-        #network._links[from_node + "-" + to_node].length = length
-        
-'''
-capacity=capacity, 
-free_speed=free_speed,
-lanes=lanes
-length=length
-link_type=link_type
 
- # Assign allowed uses (modes)
-    for mode in allowed_uses.split(','):
-        if mode.strip():
-            link.modes |= {network.mode(mode.strip())}
-'''
-
+#Publish the network
 my_scenario.publish_network(network)
 print ("Network succesfully imported!")
 
