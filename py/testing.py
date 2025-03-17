@@ -1,6 +1,9 @@
 
 
 import path4gmns_skim as pg
+import yaml
+import pandas as pd
+import os
 
 # Source Files
 input_dir = "hwy"
@@ -19,7 +22,11 @@ nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
 cost_type = "time" # Set to the cost type for skim.
 
-nt.find_shortest_path_network(output_dir, output_type, cost_type)
+#print(nt.find_shortest_path(2, 5472, "all", "node", cost_type))
+#print(nt.get_shortest_path(2,5472,cost_type))
+nt.find_shortest_path_network(output_dir, output_type, cost_type, "all")
+
+
 
 
 
@@ -29,16 +36,38 @@ nt.find_shortest_path_network(output_dir, output_type, cost_type)
 #print(nt.get_shortest_path(2,5472,cost_type))
 #print(nt.get_shortest_path_tree(1, "time"))
 
-minutes = "no" 
-if minutes == "yes":
-    ### Convert lengths of road into travel time at FFSpeed ###
-    df_link.length = (df_link.length / df_link.free_speed) * 60  # Convert travel time to minutes
-    df_link.to_csv(link_file, index=False)
+def create_settings_yaml(input_dir, file_path="settings.yml"):
+    csv_path = os.path.join(input_dir, "use_group.csv")
     
-if minutes == "yes":
-    ### Convert lengths of road back to lengths from travel time ###
-    df_link.length = (df_link.length / 60) * df_link.free_speed 
-    df_link.to_csv(link_file, index=False)
+    if os.path.exists(file_path):
+        print(f"Settings file '{file_path}' already exists. Skipping creation.")
+        return
+    
+    df = pd.read_csv(csv_path)
+    settings = {"agents": []}
+    
+    for _, row in df.iterrows():
+        agent = {
+            "type": row["type"],
+            "name": row["mode"],
+            "description": row["description"],
+            "vot": 1.0,  # Default value, can be updated as needed
+            "flow_type": "standard",  # Placeholder
+            "pce": 1.0,  # Placeholder
+            "free_speed": 50.0,  # Placeholder
+            "use_link_ffs": True  # Default setting
+        }
+        settings["agents"].append(agent)
+    
+    with open(file_path, "w") as file:
+        yaml.dump(settings, file, default_flow_style=False)
+    
+    print(f"Settings file '{file_path}' created successfully.")
+
+
+create_settings_yaml(input_dir)
+
+
 
 
 #Read link and nodes into network
@@ -52,15 +81,6 @@ print(nt.find_shortest_path(x,y))
 ''' 
     
    
-
-
-
-
-
-
-
-
-
 
 
 '''

@@ -1534,7 +1534,7 @@ class Assignment:
         to_node_id = str(to_node_id)
 
         return find_shortest_path(self.network, from_node_id,
-                                  to_node_id, seq_type, cost_type)
+                                  to_node_id, mode, seq_type, cost_type)
         
     def get_shortest_path_tree(self, from_node_id, cost_type):
         # reset agent type str or mode according to user's input
@@ -1560,7 +1560,7 @@ class Assignment:
         return get_shortest_path(self.network, from_node_id,
                                   to_node_id, cost_type)
         
-    def find_shortest_path_network(self, output_dir, output_type, cost_type):
+    def find_shortest_path_network(self, output_dir, output_type, cost_type, mode):
         """ call find_shortest_path_network() from path.py
 
         exceptions will be handled in find_shortest_path_netowrk()
@@ -1569,7 +1569,8 @@ class Assignment:
         return find_shortest_path_network(self.network, 
                                           output_dir,  
                                           output_type,
-                                          cost_type)
+                                          cost_type,
+                                          mode)
 
     def benchmark_apsp(self):
         benchmark_apsp(self.network)
@@ -1930,7 +1931,7 @@ class UI:
             cost_type
         )
 
-    def find_shortest_path_network(self, output_dir, output_type, cost_type):
+    def find_shortest_path_network(self, output_dir, output_type, cost_type, mode):
         """ return shortest path network between all nodes
 
         Parameters
@@ -1944,6 +1945,9 @@ class UI:
             
         cost_type
             Choose between "time" or "distance"
+            
+        mode
+            Which mode to compute the skim with. Such as car or pedestrian.
             
         Returns
         -------
@@ -1959,7 +1963,8 @@ class UI:
         return self._base_assignment.find_shortest_path_network( 
             output_dir,  
             output_type,
-            cost_type
+            cost_type,
+            mode
         )
         
     def get_shortest_path_tree(self, 

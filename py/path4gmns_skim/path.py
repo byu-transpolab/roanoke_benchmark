@@ -8,24 +8,22 @@ Two path engines are provided:
 """
 
 
-import collections
 import ctypes
-import heapq
+import csv
 import platform
 from os import path
 from time import time
+from .consts import MAX_LABEL_COST
 
 import numpy as np
-import pandas as pd
 import time
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import zipfile
-import io
 import openmatrix as omx
 import os
 
-from .consts import MAX_LABEL_COST
+
 
 
 __all__ = [
@@ -111,10 +109,10 @@ def _optimal_label_correcting_CAPI(G,
 
 
             
-def single_source_shortest_path(G, orig_node_id, cost_type='time'):
+def single_source_shortest_path(G, orig_node_id, cost_type, mode):
     """ use this one with UE, accessibility, and equity """
     G.allocate_for_CAPI()
-
+    
     global _prev_cost_type
     if _prev_cost_type != cost_type:
         G.init_link_costs(cost_type)
@@ -158,7 +156,7 @@ def _get_path_cost(G, to_node_id):
     return G.node_label_cost[to_node_no]
 
 
-def find_shortest_path(G, from_node_id, to_node_id,  seq_type, cost_type):
+def find_shortest_path(G, from_node_id, to_node_id, mode, seq_type, cost_type):
     if from_node_id not in G.map_id_to_no:
         raise Exception(f'Node ID: {from_node_id} not in the network')
     if to_node_id not in G.map_id_to_no:
@@ -183,7 +181,7 @@ def find_shortest_path(G, from_node_id, to_node_id,  seq_type, cost_type):
         return f'path {cost_type}: {path_cost:.4f} {unit} | link path: {path}'
 
 
-def get_shortest_path(G, from_node_id, to_node_id, cost_type):
+def get_shortest_path(G, from_node_id, to_node_id, cost_type, mode):
     # exceptions
     if from_node_id not in G.map_id_to_no:
         #return None
@@ -192,7 +190,7 @@ def get_shortest_path(G, from_node_id, to_node_id, cost_type):
         #return None
         raise Exception(f'Node ID: {to_node_id} not in the network')
     
-    single_source_shortest_path(G, from_node_id, cost_type)
+    single_source_shortest_path(G, from_node_id, cost_type, mode)
     
     path_cost = G.get_path_cost(to_node_id, cost_type)
   
@@ -201,11 +199,11 @@ def get_shortest_path(G, from_node_id, to_node_id, cost_type):
     else:
        return path_cost
 
-def compute_row_distances(G, row_node, row_nodes, cost_type):
-    return [get_shortest_path(G, row_node, col_node, cost_type) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
+def compute_row_distances(G, row_node, row_nodes, cost_type, mode):
+    return [get_shortest_path(G, row_node, col_node, cost_type, mode) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
 
 
-def create_numpy_matrix_parallel(G, row_nodes, cost_type):
+def create_numpy_matrix_parallel(G, row_nodes, cost_type, mode):
     """
     Creates a shortest path distance matrix using parallel processing.
 
@@ -220,7 +218,7 @@ def create_numpy_matrix_parallel(G, row_nodes, cost_type):
 
     # Use joblib with tqdm for parallel computation
     skim_matrix = Parallel(n_jobs=-1)(
-        delayed(compute_row_distances)(G, row_node, row_nodes, cost_type)  # Corrected function call
+        delayed(compute_row_distances)(G, row_node, row_nodes, cost_type, mode)  # Corrected function call
         for row_node in tqdm(row_nodes, desc="Computing shortest paths"))
     
     elapsed_time = time.time() - start_time
@@ -241,20 +239,31 @@ def save_as_omx(matrix, row_nodes, output_path):
     print(f"Matrix saved as OMX file: {output_path}")
 
 
-def save_as_csv(df_matrix, output_path):
-    df_matrix.to_csv(output_path, index=True, header=True, float_format="%.2f")
+def save_as_csv(matrix, row_nodes, output_path):
+    with open(output_path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([""] + row_nodes)  # Write header row
+        for i, row in enumerate(matrix):
+            writer.writerow([row_nodes[i]] + [f"{val:.2f}" for val in row])  # Write data rows with 2 decimal places
     print(f"Matrix saved to {output_path}")
 
 
-def save_as_zip(df_matrix, output_path, csv_filename):
+def save_as_zip(matrix, row_nodes, output_path, csv_filename):
+    csv_temp_path = output_path.replace(".zip", ".csv")
+    
+    with open(csv_temp_path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([""] + row_nodes)  # Write header row
+        for i, row in enumerate(matrix):
+            writer.writerow([row_nodes[i]] + [f"{val:.2f}" for val in row])  # Write data rows with 2 decimal places
+    
     with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        with io.StringIO() as csv_buffer:
-            df_matrix.to_csv(csv_buffer, index=True, header=True, float_format="%.2f")
-            zipf.writestr(csv_filename, csv_buffer.getvalue())
-
+        zipf.write(csv_temp_path, csv_filename)
+    
+    os.remove(csv_temp_path)  # Clean up temp file
     print(f"Matrix Zipfile saved to {output_path}")
 
-def find_shortest_path_network(G, output_dir, output_type, cost_type):
+def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     # Check to make sure output_type is an accepted type.
     valid_types = {".omx", ".csv", ".zip"}
     if output_type not in valid_types:
@@ -264,28 +273,23 @@ def find_shortest_path_network(G, output_dir, output_type, cost_type):
     row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
 
     # Compute shortest path matrix in parallel
-    skim_matrix = create_numpy_matrix_parallel(G,row_nodes, cost_type)
-
-    # Convert matrix to DataFrame, using row_nodes and total number of nodes
-    df_skim_matrix = pd.DataFrame(skim_matrix, index=row_nodes, columns=row_nodes)
+    skim_matrix = create_numpy_matrix_parallel(G, row_nodes, cost_type, mode)
 
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
     # Save the matrix in the requested format
-    output_path = os.path.join(output_dir, f"{"shortest_path_matrix_" + '(' + cost_type + ')'}{output_type}")
+    output_path = os.path.join(output_dir, f"shortest_path_matrix_({cost_type}){output_type}")
 
-    if output_type == ".omx":
-        save_as_omx(skim_matrix, row_nodes, output_path)
-
-    elif output_type == ".csv":
-        save_as_csv(df_skim_matrix, output_path)
-
+    if output_type == ".csv":
+        save_as_csv(skim_matrix, row_nodes, output_path)
+    
     elif output_type == ".zip":
         csv_filename = "shortest_path_matrix.csv"
-        save_as_zip(df_skim_matrix, output_path, csv_filename)
+        save_as_zip(skim_matrix, row_nodes, output_path, csv_filename)
+    
     else:
-        raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of ['.omx', '.csv', '.zip'].")
+        raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of ['.csv', '.zip'].")
 
 def find_path_for_agents(G, column_pool, engine_type='c'):
     """ find and set up shortest path for each agent
@@ -348,14 +352,44 @@ def find_path_for_agents(G, column_pool, engine_type='c'):
 def _get_path_sequence_str(G, to_node_id, seq_type):
     return ';'.join(str(x) for x in output_path_sequence(G, to_node_id, seq_type))
 
-def get_shortest_path_tree(G, from_node_id, cost_type):
+def get_shortest_path_tree(G, from_node_id, seq_type, cost_type, integer_node_id):
+    """ compute the shortest path tree from the source node (from_node_id)
+
+    it returns a dictionary, where key is to_node_id and value is the
+    corresponding shortest path information (path cost and path details).
+
+    Note that the source node itself is excluded from the dictionary keys.
+    """
     if from_node_id not in G.map_id_to_no:
         raise Exception(f'Node ID: {from_node_id} not in the network')
 
     single_source_shortest_path(G, from_node_id, cost_type)
 
-    return {to_node_id : [G.get_path_cost(to_node_id, cost_type)]
-                          for to_node_id in G.map_id_to_no.keys() if to_node_id != from_node_id}
+    if integer_node_id:
+        sp_tree = {}
+        for to_node_id in G.map_id_to_no:
+            if to_node_id == from_node_id:
+                continue
+
+            try:
+                to_node_id_int = _convert_str_to_int(to_node_id)
+            except InvalidRecord:
+                to_node_id_int = to_node_id
+
+            sp_tree[to_node_id_int] = (
+                G.get_path_cost(to_node_id, cost_type),
+                _get_path_sequence_str(G, to_node_id, seq_type)
+            )
+
+        return sp_tree
+    else:
+        return {
+            to_node_id : (
+                G.get_path_cost(to_node_id, cost_type),
+                _get_path_sequence_str(G, to_node_id, seq_type)
+            )
+            for to_node_id in G.map_id_to_no if to_node_id != from_node_id
+        }
 
 
 def benchmark_apsp(G):

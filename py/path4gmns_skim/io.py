@@ -580,11 +580,45 @@ def _auto_setup(assignment):
     assignment.update_demand_periods(dp)
     assignment.update_demands(d)
 
+def create_settings(input_dir):
+    import yaml as ym
+    file_path = os.path.join(input_dir, "settings.yml")
+    csv_path = os.path.join(input_dir, "use_group.csv")
+    
+    if os.path.exists(file_path):
+        print(f"settings.yml found")
+        return
+    
+    print(f"settings.yml missing from input_dir. Creating setting.yml")
+    settings = {"agents": []}
+    
+    with open(csv_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            agent = {
+                "type": row["mode"],
+                "name": row["description"],
+                "description": row["type"],
+                "vot": 1.0,                 # Placeholder
+                "flow_type": "standard",    # Placeholder
+                "pce": 1.0,                 # Placeholder
+                "free_speed": 50.0,         # Placeholder
+                "use_link_ffs": True        # Default setting
+            }
+            settings["agents"].append(agent)
+    
+    with open(file_path, "w") as file:
+        ym.dump(settings, file, default_flow_style=False)
+    
+    print(f"Settings.yml created successfully.")
 
 def read_settings(input_dir, assignment):
+    
     try:
         import yaml as ym
-
+        
+        create_settings(input_dir) #Create setting file using use_group is none already exists. 
+        
         with open(input_dir+'/settings.yml') as file:
             print('read settings.yml\n')
 
@@ -624,51 +658,54 @@ def read_settings(input_dir, assignment):
             # add the default mode if it does not exist
             if AgentType.get_default_type_str() not in assignment.map_atstr_id:
                 assignment.update_agent_types(AgentType())
-
+       
             # demand periods
-            demand_periods = settings['demand_periods']
-            for i, d in enumerate(demand_periods):
-                period = d['period']
-                time_period = d['time_period']
+            if 'demand_periods' in settings:
+                demand_periods = settings['demand_periods']
+                for i, d in enumerate(demand_periods):
+                    period = d['period']
+                    time_period = d['time_period']
 
-                dp = DemandPeriod(i, period, time_period)
-                # special event
-                try:
-                    s = d['special_event']
-                    enable = s['enable']
-                    # no need to set up a special event if it is off
-                    if not enable:
-                        raise KeyError
+                    dp = DemandPeriod(i, period, time_period)
+                    # special event
+                    try:
+                        s = d['special_event']
+                        enable = s['enable']
+                        # no need to set up a special event if it is off
+                        if not enable:
+                            raise KeyError
 
-                    name = s['name']
-                    se = SpecialEvent(name)
+                        name = s['name']
+                        se = SpecialEvent(name)
 
-                    links = s['affected_links']
-                    for link in links:
-                        link_id = str(link['link_id'])
-                        ratio = link['capacity_ratio']
-                        se.affected_links[link_id] = ratio
+                        links = s['affected_links']
+                        for link in links:
+                            link_id = str(link['link_id'])
+                            ratio = link['capacity_ratio']
+                            se.affected_links[link_id] = ratio
 
-                    dp.special_event = se
-                except KeyError:
-                    pass
+                        dp.special_event = se
+                    except KeyError:
+                        pass
 
-                assignment.update_demand_periods(dp)
+                    assignment.update_demand_periods(dp)
 
             # demand files
-            demands = settings['demand_files']
-            for i, d in enumerate(demands):
-                demand_file = d['file_name']
-                demand_period = d['period']
-                demand_type = d['agent_type']
+            if 'demand_files' in settings:
+                demands = settings['demand_files']
+                for i, d in enumerate(demands):
+                    demand_file = d['file_name']
+                    demand_period = d['period']
+                    demand_type = d['agent_type']
 
-                if demand_type not in assignment.map_atstr_id:
-                    raise Exception(
-                        f'{demand_type} is not found as an entry of agents in settings.yml'
-                    )
+                    if demand_type not in assignment.map_atstr_id:
+                        raise Exception(
+                            f'{demand_type} is not found as an entry of agents in settings.yml'
+                        )
 
-                demand = Demand(i, demand_period, demand_type, demand_file)
-                assignment.update_demands(demand)
+                    demand = Demand(i, demand_period, demand_type, demand_file)
+                    assignment.update_demands(demand)
+
 
             # simulation setup
             try:
