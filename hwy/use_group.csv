@@ -1,5 +1,5 @@
 mode,description,type
-b,Bike,AUX_TRANSIT
-p,Pedestrian,AUX_TRANSIT
-c,Car,AUTO
-t,Transit,TRANSIT
+b,bike,AUX_TRANSIT
+t,transit,TRANSIT
+c,car,AUTO
+p,pedestrian,AUX_TRANSIT

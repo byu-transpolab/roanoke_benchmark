@@ -18,15 +18,31 @@ node_file = 'hwy/node.csv'
 
 ###### Find Shortest Path Network########
 #Read link and nodes into network
-nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+#pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+#nt = pg.run_skim_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
+
+
+pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+
+
+
+
+mode = "all" #"pedestrian"
+seq = "link"
 cost_type = "time" # Set to the cost type for skim.
+x = 5719 #5726
+y = 3538 #5727
 
-#print(nt.find_shortest_path(2, 5472, "all", "node", cost_type))
+#print(pg.run_skim_network(length_unit='mi', speed_unit='mph', input_dir=input_dir))
+
+#print(nt.get_shortest_path(x, y, cost_type, mode))
+
+#nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+#print(nt.find_shortest_path(x, y, "all", seq, cost_type))
+
 #print(nt.get_shortest_path(2,5472,cost_type))
-nt.find_shortest_path_network(output_dir, output_type, cost_type, "all")
-
-
+#nt.find_shortest_path_network(output_dir, output_type, cost_type, mode)
 
 
 

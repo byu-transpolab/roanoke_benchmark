@@ -32,11 +32,6 @@ def factype_to_string(factype_value):
         return factype_dict.get(factype_value, f'unknown_type')  #_{factype_value}
     return 'Invalid FACTYPE'
 
-
-
-
-
-
 # Function to create 'allowed_uses' column based on conditions 
 def create_allowed_uses_column(df):
     allowed_uses = []
@@ -82,10 +77,10 @@ def create_use_group_file(csv_file, output_csv):
     
     # Define valid modes and their descriptions
     mode_info = {
-        "c": ("Car", "AUTO"),
-        "p": ("Pedestrian", "AUX_TRANSIT"),
-        "b": ("Bike", "AUX_TRANSIT"),
-        "t": ("Transit", "TRANSIT")
+        "c": ("car", "AUTO"),
+        "p": ("pedestrian", "AUX_TRANSIT"),
+        "b": ("bike", "AUX_TRANSIT"),
+        "t": ("transit", "TRANSIT")
     }
     
     # Extract unique modes by checking if c, p, b, or t appears in allowed_uses
@@ -109,16 +104,34 @@ def create_use_group_file(csv_file, output_csv):
 def remove_duplicate_pairs(df):
     return df.drop_duplicates(subset=['A', 'B'], keep='first')
 
+# Function to rename link ids that have the same number but are unique 
+def renumber_duplicate_ids(df):
+    if 'ID' not in df.columns:
+        print("Error: 'ID' column not found in the DataFrame.")
+        return df
+
+    df['ID'] = pd.to_numeric(df['ID'], errors='coerce')
+    max_id = df['ID'].max()
+    seen_ids = set()
+    new_id_map = {}
+
+    for index, row in df.iterrows():
+        link_id = row['ID']
+        if link_id in seen_ids:
+            max_id += 1
+            new_id_map[index] = max_id
+        else:
+            seen_ids.add(link_id)
+
+    df.loc[new_id_map.keys(), 'ID'] = df.loc[new_id_map.keys()].index.map(new_id_map)
+    return df
+
 # Function to process and convert DBF links to CSV
 def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
     # Check if the shapefile exists
     if not os.path.exists(shp_file):
         print(f"Error: The file {shp_file} does not exist.")
         return
-
-    # Read the DBF and shapefile
-    df = read_dbf(dbf_file)
-    shapefile = gpd.read_file(shp_file)
 
     # Read the DBF and shapefile
     df = read_dbf(dbf_file)
@@ -133,7 +146,6 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
     df['free_speed'] = df['free_speed'].fillna(25)
     df.loc[df['free_speed'] == 0, 'free_speed'] = 25
-
 
 
     # Ensure both shapefile and DBF have the 'ID' column
@@ -152,6 +164,9 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
         
         # Remove duplicates
         merged = remove_duplicate_pairs(merged)
+        
+        # Renumber duplicate link IDs
+        merged = renumber_duplicate_ids(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")

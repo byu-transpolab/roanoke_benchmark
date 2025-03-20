@@ -392,6 +392,7 @@ class Network:
         self.node_size = 0
         self.link_size = 0
         self.agent_size = 0
+        self.agent_types = []
         # key: node id, value: node seq no
         self.map_id_to_no = {}
         # key: node seq no, value: node id
@@ -571,6 +572,8 @@ class Network:
         self.node_size = len(self.nodes)
         self.link_size = len(self.links)
         self.centroids_added = True
+        
+        
 
     def setup_agents(self, column_pool):
         agent_id = 1
@@ -764,6 +767,9 @@ class Network:
 
     def set_agent_type_name(self, at_name):
         self.agent_type_name = at_name
+        
+    def get_agent_types(self):
+        return self.agent_types
 
     def get_centroids(self):
         for k, v in self.zones.items():
@@ -1536,19 +1542,20 @@ class Assignment:
         return find_shortest_path(self.network, from_node_id,
                                   to_node_id, mode, seq_type, cost_type)
         
-    def get_shortest_path_tree(self, from_node_id, cost_type):
+    def get_shortest_path_tree(self, from_node_id, cost_type, mode):
         # reset agent type str or mode according to user's input
-        #at_name, _ = self._convert_mode(mode)
-        #self.network.set_agent_type_name(at_name)
+        at_name, _ = self._convert_mode(mode)
+        self.network.set_agent_type_name(at_name)
 
         # add backward compatibility in case the user still use integer node id's
         from_node_id = str(from_node_id)
 
         return get_shortest_path_tree(self.network, 
                                       from_node_id,
-                                      cost_type)
+                                      cost_type,
+                                      mode)
         
-    def get_shortest_path(self, from_node_id, to_node_id, cost_type):
+    def get_shortest_path(self, from_node_id, to_node_id, cost_type, mode):
         """ call get_shortest_path() from path.py
 
         exceptions will be handled in get_shortest_path()
@@ -1556,9 +1563,11 @@ class Assignment:
         # add backward compatibility in case the user still use integer node id's
         from_node_id = str(from_node_id)
         to_node_id = str(to_node_id)
+        
+        agents = self.agent_types
 
         return get_shortest_path(self.network, from_node_id,
-                                  to_node_id, cost_type)
+                                  to_node_id, cost_type, mode, agents)
         
     def find_shortest_path_network(self, output_dir, output_type, cost_type, mode):
         """ call find_shortest_path_network() from path.py
@@ -1856,7 +1865,7 @@ class UI:
         return self._base_assignment.find_path_for_agents(mode)
 
     def find_shortest_path(self, from_node_id, to_node_id,
-                           mode='all', seq_type='node', cost_type='time'):
+                           mode, seq_type='node', cost_type='time'):
         """ return shortest path between from_node_id and to_node_id
 
         Parameters
@@ -1903,7 +1912,8 @@ class UI:
     def get_shortest_path(self, 
                                     from_node_id, 
                                     to_node_id,
-                                    cost_type
+                                    cost_type,
+                                    mode
                                 ):
         """ return shortest path network between all nodes
 
@@ -1928,7 +1938,8 @@ class UI:
         return self._base_assignment.get_shortest_path(
             from_node_id,
             to_node_id,
-            cost_type
+            cost_type,
+            mode
         )
 
     def find_shortest_path_network(self, output_dir, output_type, cost_type, mode):

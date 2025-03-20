@@ -109,7 +109,7 @@ def _optimal_label_correcting_CAPI(G,
 
 
             
-def single_source_shortest_path(G, orig_node_id, cost_type, mode):
+def single_source_shortest_path(G, orig_node_id, cost_type):
     """ use this one with UE, accessibility, and equity """
     G.allocate_for_CAPI()
     
@@ -147,13 +147,7 @@ def output_path_sequence(G, to_node_id, type='node'):
             curr_link_no = G.link_preds[curr_node_no]
         # reverse the sequence
         for link_no in reversed(path):
-            yield G.links[link_no].get_link_id()
-
-
-def _get_path_cost(G, to_node_id):
-    to_node_no = G.map_id_to_no[to_node_id]
-
-    return G.node_label_cost[to_node_no]
+            yield f"{G.links[link_no].get_link_id()}-{G.links[link_no].allowed_uses}"
 
 
 def find_shortest_path(G, from_node_id, to_node_id, mode, seq_type, cost_type):
@@ -161,7 +155,7 @@ def find_shortest_path(G, from_node_id, to_node_id, mode, seq_type, cost_type):
         raise Exception(f'Node ID: {from_node_id} not in the network')
     if to_node_id not in G.map_id_to_no:
         raise Exception(f'Node ID: {to_node_id} not in the network')
-
+        
     single_source_shortest_path(G, from_node_id, cost_type)
 
     path_cost = G.get_path_cost(to_node_id, cost_type)
@@ -181,7 +175,7 @@ def find_shortest_path(G, from_node_id, to_node_id, mode, seq_type, cost_type):
         return f'path {cost_type}: {path_cost:.4f} {unit} | link path: {path}'
 
 
-def get_shortest_path(G, from_node_id, to_node_id, cost_type, mode):
+def get_shortest_path(G, from_node_id, to_node_id, cost_type, mode, agents):
     # exceptions
     if from_node_id not in G.map_id_to_no:
         #return None
@@ -190,14 +184,51 @@ def get_shortest_path(G, from_node_id, to_node_id, cost_type, mode):
         #return None
         raise Exception(f'Node ID: {to_node_id} not in the network')
     
-    single_source_shortest_path(G, from_node_id, cost_type, mode)
+    '''
+    for i in range(len(agents) - 1):  # -1 removed auto added "auto" type
+        print(agents[i].name)
+        G.agent_type_name = "all"  # agents[i].name
+        mode_type = agents[i].type
+
+    # Create a placeholder list to maintain index positions
+        filtered_links = [None] * len(G.links)
+
+    # Iterate through the original links and place valid links in their original index positions
+        for j, link in enumerate(G.links):
+            if mode_type in link.allowed_uses.lower():
+                filtered_links[j] = link  # Maintain index position
+
+    # Remove None values, keeping only the valid links
+        G.links = [link for link in filtered_links if link is not None]
+    '''    
+        
+        
+    single_source_shortest_path(G, from_node_id, cost_type)
     
     path_cost = G.get_path_cost(to_node_id, cost_type)
   
     if path_cost >= MAX_LABEL_COST:
-        return 9999999
+             print(9999999)
     else:
-       return path_cost
+            print(path_cost)
+    
+    
+    
+    '''
+     for i in range(len(agents)-1): # -1 removed auto added "auto" type
+        print(agents[i].name)
+        G.agent_type_name = "all" #agents[i].name
+        mode_type = agents[i].type
+        filtered_links = [links for links in G.links if mode_type in links.allowed_uses.lower()]
+        G.links = filtered_links
+    
+    print(agents[i].type) #Letter representing mode on link
+    print(len(agents)) # Total length of link
+    print(agents[i].name) #Name of type of skim
+    '''
+    
+    
+    
 
 def compute_row_distances(G, row_node, row_nodes, cost_type, mode):
     return [get_shortest_path(G, row_node, col_node, cost_type, mode) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]

@@ -2,7 +2,7 @@ agents:
 - description: AUTO
   flow_type: standard
   free_speed: 50.0
-  name: Car
+  name: car
   pce: 1.0
   type: c
   use_link_ffs: true
@@ -10,7 +10,7 @@ agents:
 - description: AUX_TRANSIT
   flow_type: standard
   free_speed: 50.0
-  name: Pedestrian
+  name: pedestrian
   pce: 1.0
   type: p
   use_link_ffs: true
@@ -18,7 +18,7 @@ agents:
 - description: AUX_TRANSIT
   flow_type: standard
   free_speed: 50.0
-  name: Bike
+  name: bike
   pce: 1.0
   type: b
   use_link_ffs: true
@@ -26,7 +26,7 @@ agents:
 - description: TRANSIT
   flow_type: standard
   free_speed: 50.0
-  name: Transit
+  name: transit
   pce: 1.0
   type: t
   use_link_ffs: true

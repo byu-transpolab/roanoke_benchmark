@@ -15,6 +15,7 @@ from .zonesyn import network_to_zones
 
 __all__ = [
     'read_network',
+    'run_skim_network',
     'read_demand',
     'read_measurements',
     'load_demand',
@@ -306,12 +307,19 @@ def read_links(input_dir,
 
                 link.vdfperiods.append(vdf)
 
+
+            
+
             # set up outgoing links and incoming links
             from_node = nodes[from_node_no]
             to_node = nodes[to_node_no]
             from_node.add_outgoing_link(link)
             to_node.add_incoming_link(link)
             links.append(link)
+
+
+
+
 
             # set up zone degrees
             if load_demand:
@@ -580,6 +588,10 @@ def _auto_setup(assignment):
     assignment.update_demand_periods(dp)
     assignment.update_demands(d)
 
+
+
+
+
 def create_settings(input_dir):
     import yaml as ym
     file_path = os.path.join(input_dir, "settings.yml")
@@ -611,6 +623,9 @@ def create_settings(input_dir):
         ym.dump(settings, file, default_flow_style=False)
     
     print(f"Settings.yml created successfully.")
+
+
+
 
 def read_settings(input_dir, assignment):
     
@@ -747,7 +762,11 @@ def read_settings(input_dir, assignment):
 def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
     len_units = ['kilometer', 'km', 'meter', 'm', 'mile', 'mi']
     spd_units = ['kmh', 'kph', 'mph']
-
+    
+   
+    
+    print("ayayaya")
+    
     # length and speed units check
     # linear search is OK for such small lists
     if length_unit not in len_units:
@@ -766,9 +785,13 @@ def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
 
     assignm = Assignment()
     network = Network()
+    
+    print(assignm.agent_types)
 
     read_settings(input_dir, assignm)
-
+    
+    print(assignm.agent_types[0])
+    
     read_nodes(input_dir,
                network.nodes,
                network.map_id_to_no,
@@ -791,6 +814,9 @@ def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
 
     return UI(assignm)
 
+def run_skim_network(length_unit, speed_unit, input_dir):
+    read_network(length_unit, speed_unit, input_dir)
+    
 
 def load_columns(ui, input_dir='.'):
     with open(input_dir+'/route_assignment.csv', 'r') as f:
