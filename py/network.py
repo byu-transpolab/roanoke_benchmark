@@ -105,9 +105,9 @@ def create_use_group_file(csv_file, output_csv):
     print(f"Use group file saved to {output_csv}")
 
 
-# Function to remove duplicate rows based on the 'ID' column
-def remove_duplicate_ids(df):
-    return df.drop_duplicates(subset=['ID'], keep='first')
+# Function to remove duplicate rows based on the 'A' and 'B' column
+def remove_duplicate_pairs(df):
+    return df.drop_duplicates(subset=['A', 'B'], keep='first')
 
 # Function to process and convert DBF links to CSV
 def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
@@ -151,7 +151,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
             print(f"Found {len(duplicates)} duplicate rows before removal.")
         
         # Remove duplicates
-        merged = remove_duplicate_ids(merged)
+        merged = remove_duplicate_pairs(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")
