@@ -1,34 +1,30 @@
 
 import path4gmns_skim as pg
+import gtfs2gmns_conversion as gtfs
 
 
 # Source Files
 input_dir = "hwy"
+tran_input_dir = "transit/gtfs/roanoke"
 
 # Output file and path
 output_dir = "hwy"
+tran_output_dir = "transit"
 output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
+
 cost_type = "time" # Set to the cost type for skim.
+time_period = '0000_2359'
 
 #File paths for read_network
 link_file = 'hwy/link.csv'      
 node_file = 'hwy/node.csv'
 
-
+#gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
 
 #nt =pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
-#nt.find_shortest_path_network()
-
-
-seq = "link"
-x = 1 #5726
-y = 2 #5727
-
-#nt.find_shortest_path_network(output_dir, output_type, cost_type)
 
 print(pg.run_skim_network('mi','mph',input_dir, output_dir, cost_type, output_type))
 
-#print(nt.get_shortest_path(x, y, cost_type))
 
 
 '''

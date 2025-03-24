@@ -612,7 +612,12 @@ def _hhmm_to_minutes(time_period_1):
 """ ------------------main functions------------------ """
 
 
-def gtfs2gmns(input_path, output_path):
+def gtfs2gmns(input_path, output_path, time_period):
+    global period_start_time
+    global period_end_time
+    
+    period_start_time, period_end_time = _hhmm_to_minutes(time_period)
+    
     start_time = time.time()
     folders = [folder for folder in os.listdir(input_path) if "check" not in folder]
     gtfs_folder_list = []
@@ -659,8 +664,8 @@ def gtfs2gmns(input_path, output_path):
     all_link_df.rename(columns={0: 'link_id',
                                 1: 'from_node_id',
                                 2: 'to_node_id',
-                                3: 'facility_type',
-                                4: 'dir_flag',
+                                3: 'allowed_uses',
+                                4: 'directed',
                                 5: 'directed_route_id',
                                 6: 'link_type',
                                 7: 'link_type_name',
@@ -679,7 +684,15 @@ def gtfs2gmns(input_path, output_path):
                                 20: 'agency_name',
                                 21: 'stop_sequence',
                                 22: 'directed_service_id'}, inplace=True)
-    all_node_df.to_csv(transit_node_name, index=False)   #Creates node file with given name. If the name already exists, it won't work, so give it a unique name.
+    if os.path.exists("node_transit.csv"):
+        os.remove("node_transit.csv")
+
+    if os.path.exists("link_transit.csv"):
+        os.remove("link_transit.csv")
+        
+    node_csv_path = os.path.join(output_path, "node_transit.csv")
+    link_csv_path = os.path.join(output_path, "link_transit.csv")
+    all_node_df.to_csv(node_csv_path, index=False)   #Creates node file with given name. If the name already exists, it won't work, so give it a unique name.
     #  zone_df = pd.read_csv('zone.csv')
     #  source_node_df = pd.read_csv('source_node.csv')
     #  node_df = pd.concat([zone_df, all_node_df])
@@ -687,10 +700,7 @@ def gtfs2gmns(input_path, output_path):
     all_link_df = all_link_df.drop_duplicates(
         subset=['from_node_id', 'to_node_id'],
         keep='last').reset_index(drop=True)
-    all_link_df.to_csv(transit_link_name, index=False) 
-    
-    shutil.move(transit_node_name, output_path)
-    shutil.move(transit_link_name, output_path)   
+    all_link_df.to_csv(link_csv_path, index=False)    
     
     print('run time -->', time.time() - start_time)  #Give total run time
 
@@ -721,13 +731,11 @@ if __name__ == '__main__':
     
     input_path = 'transit/gtfs/roanoke'           # Where you are reading the gtfs data from. 
     output_path = 'transit/'      # Where the files will be placed upon completion. 
-    transit_node_name = 'transit_node.csv'              # Name of nodes. Must be Unique
-    transit_link_name = 'transit_link.csv'              # Name of Links. Must be Unique
     time_period = '0000_2359'                           # The time period of the data. The code below changes the format.
     
     #time_period_id = 1
     period_start_time, period_end_time = _hhmm_to_minutes(time_period)
-    gtfs2gmns(input_path, output_path)
+    gtfs2gmns(input_path, output_path, time_period)
 
 
 
