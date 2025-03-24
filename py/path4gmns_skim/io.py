@@ -30,6 +30,7 @@ __all__ = [
 
 
 def read_nodes(input_dir,
+               mode,
                nodes,
                map_id_to_no,
                map_no_to_id,
@@ -70,7 +71,12 @@ def read_nodes(input_dir,
                 pass
 
             # construct node object
-            node = Node(node_no, node_id, zone_id, coord_x, coord_y, is_activity_node)
+            node = Node(node_no, 
+                        node_id, 
+                        zone_id, 
+                        coord_x, 
+                        coord_y, 
+                        is_activity_node)
             nodes.append(node)
 
             # set up mapping between node_no and node_id
@@ -110,6 +116,7 @@ def read_nodes(input_dir,
 
 
 def read_links(input_dir,
+               mode,
                links,
                nodes,
                map_id_to_no,
@@ -121,12 +128,25 @@ def read_links(input_dir,
     """ step 2: read input_link """
     with open(input_dir+'/link.csv', 'r') as fp:
         print('read link.csv')
-
+        
         reader = csv.DictReader(fp)
         link_no = 0
         # a temporary container (set) to validate the uniqueness of a link id
         link_ids_ = set()
         for line in reader:
+            # Get allowed_uses, set to 'all' if missing
+            try:
+                allowed_uses = line['allowed_uses']
+                if not allowed_uses:
+                    raise InvalidRecord
+            except (KeyError, InvalidRecord):
+                allowed_uses = 'all'
+
+            # Skip the line if mode character is not in allowed_uses
+            # This will create a network that has links that can only use that allowed use.
+            if mode not in allowed_uses:
+                continue
+            
             # link id shall be unique
             link_id = line['link_id']
             # binary search shall be fast enough
@@ -191,18 +211,6 @@ def read_links(input_dir,
                 toll = _convert_str_to_float(line['toll'])
             except (KeyError, InvalidRecord):
                 toll = 0
-
-            # if link.csv does not have no column 'allowed_uses',
-            # set allowed_uses to 'all'
-            # developer's note:
-            # we may need to change this implementation as we cannot deal with
-            # cases a link which is not open to any modes
-            try:
-                allowed_uses = line['allowed_uses']
-                if not allowed_uses:
-                    raise InvalidRecord
-            except (KeyError, InvalidRecord):
-                allowed_uses = 'all'
 
             # if link.csv does not have no column 'geometry',
             # set geometry to ''
@@ -307,19 +315,12 @@ def read_links(input_dir,
 
                 link.vdfperiods.append(vdf)
 
-
-            
-
             # set up outgoing links and incoming links
             from_node = nodes[from_node_no]
             to_node = nodes[to_node_no]
             from_node.add_outgoing_link(link)
             to_node.add_incoming_link(link)
             links.append(link)
-
-
-
-
 
             # set up zone degrees
             if load_demand:
@@ -589,9 +590,6 @@ def _auto_setup(assignment):
     assignment.update_demands(d)
 
 
-
-
-
 def create_settings(input_dir):
     import yaml as ym
     file_path = os.path.join(input_dir, "settings.yml")
@@ -623,8 +621,6 @@ def create_settings(input_dir):
         ym.dump(settings, file, default_flow_style=False)
     
     print(f"Settings.yml created successfully.")
-
-
 
 
 def read_settings(input_dir, assignment):
@@ -759,13 +755,9 @@ def read_settings(input_dir, assignment):
         raise e
 
 
-def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
+def read_network(length_unit='mile', speed_unit='mph', input_dir='.', mode="all"):
     len_units = ['kilometer', 'km', 'meter', 'm', 'mile', 'mi']
     spd_units = ['kmh', 'kph', 'mph']
-    
-   
-    
-    print("ayayaya")
     
     # length and speed units check
     # linear search is OK for such small lists
@@ -786,13 +778,10 @@ def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
     assignm = Assignment()
     network = Network()
     
-    print(assignm.agent_types)
-
     read_settings(input_dir, assignm)
     
-    print(assignm.agent_types[0])
-    
     read_nodes(input_dir,
+               mode,
                network.nodes,
                network.map_id_to_no,
                network.map_no_to_id,
@@ -800,6 +789,7 @@ def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
                load_demand)
 
     read_links(input_dir,
+               mode,
                network.links,
                network.nodes,
                network.map_id_to_no,
@@ -810,12 +800,67 @@ def read_network(length_unit='mile', speed_unit='mph', input_dir='.'):
                load_demand)
 
     network.update()
-    assignm.network = network
+    assignm.network = network  ######## Assigning of the network
 
     return UI(assignm)
 
-def run_skim_network(length_unit, speed_unit, input_dir):
-    read_network(length_unit, speed_unit, input_dir)
+def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= "time",output_type = ".omx"):
+    assignm = Assignment()
+    read_settings(input_dir, assignm) #Creates agents for Use_group file
+    for i in range(len(assignm.agent_types)-1): # -1 removed auto added "auto" type
+        mode = assignm.agent_types[i].type
+        print("----------------")
+        print("Running skim for mode: " + assignm.agent_types[i].name)
+        print("----------------")
+        #read_network(length_unit, speed_unit, input_dir, mode)
+        len_units = ['kilometer', 'km', 'meter', 'm', 'mile', 'mi']
+        spd_units = ['kmh', 'kph', 'mph']
+    
+        # length and speed units check
+        # linear search is OK for such small lists
+        if length_unit not in len_units:
+            units = ', '.join(len_units)
+            raise Exception(
+                f'Invalid length unit: {length_unit} !'
+                f' Please choose one available unit from {units}'
+        )
+
+        if speed_unit not in spd_units:
+            units = ', '.join(spd_units)
+            raise Exception(
+                f'Invalid speed unit: {speed_unit} !'
+                f' Please choose one available unit from {units}'
+        )
+
+        assignm = Assignment()
+        network = Network()
+    
+        read_settings(input_dir, assignm)
+    
+        read_nodes(input_dir,
+                mode,
+                network.nodes,
+                network.map_id_to_no,
+                network.map_no_to_id,
+                network.zones,
+                load_demand)
+
+        read_links(input_dir,
+                mode,
+                network.links,
+                network.nodes,
+                network.map_id_to_no,
+                network.link_ids,
+                assignm.get_demand_period_count(),
+                length_unit,
+                speed_unit,
+                load_demand)
+
+        network.update()
+        assignm.network = network  ######## Assigning of the network
+        mode = assignm.agent_types[i].name
+        UI(assignm).find_shortest_path_network(output_dir, output_type, cost_type, mode)
+    
     
 
 def load_columns(ui, input_dir='.'):

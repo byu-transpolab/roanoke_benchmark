@@ -1,9 +1,6 @@
 
-
 import path4gmns_skim as pg
-import yaml
-import pandas as pd
-import os
+
 
 # Source Files
 input_dir = "hwy"
@@ -11,38 +8,61 @@ input_dir = "hwy"
 # Output file and path
 output_dir = "hwy"
 output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
+cost_type = "time" # Set to the cost type for skim.
 
 #File paths for read_network
 link_file = 'hwy/link.csv'      
 node_file = 'hwy/node.csv'
 
-###### Find Shortest Path Network########
-#Read link and nodes into network
-#pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
-#nt = pg.run_skim_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
 
-
-pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
-
-
+#nt =pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
+#nt.find_shortest_path_network()
 
 
-mode = "all" #"pedestrian"
 seq = "link"
-cost_type = "time" # Set to the cost type for skim.
-x = 5719 #5726
-y = 3538 #5727
+x = 1 #5726
+y = 2 #5727
 
-#print(pg.run_skim_network(length_unit='mi', speed_unit='mph', input_dir=input_dir))
+#nt.find_shortest_path_network(output_dir, output_type, cost_type)
 
-#print(nt.get_shortest_path(x, y, cost_type, mode))
+print(pg.run_skim_network('mi','mph',input_dir, output_dir, cost_type, output_type))
 
-#nt = pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
-#print(nt.find_shortest_path(x, y, "all", seq, cost_type))
+#print(nt.get_shortest_path(x, y, cost_type))
 
-#print(nt.get_shortest_path(2,5472,cost_type))
-#nt.find_shortest_path_network(output_dir, output_type, cost_type, mode)
+
+'''
+    for i in range(len(agents) - 1):  # -1 removed auto added "auto" type
+        print(agents[i].name)
+        G.agent_type_name = "all"  # agents[i].name
+        mode_type = agents[i].type
+
+    # Create a placeholder list to maintain index positions
+        filtered_links = [None] * len(G.links)
+
+    # Iterate through the original links and place valid links in their original index positions
+        for j, link in enumerate(G.links):
+            if mode_type in link.allowed_uses.lower():
+                filtered_links[j] = link  # Maintain index position
+
+    # Remove None values, keeping only the valid links
+        G.links = [link for link in filtered_links if link is not None]
+    ''' 
+
+
+'''
+     for i in range(len(agents)-1): # -1 removed auto added "auto" type
+        print(agents[i].name)
+        G.agent_type_name = "all" #agents[i].name
+        mode_type = agents[i].type
+        filtered_links = [links for links in G.links if mode_type in links.allowed_uses.lower()]
+        G.links = filtered_links
+    
+    print(agents[i].type) #Letter representing mode on link
+    print(len(agents)) # Total length of link
+    print(agents[i].name) #Name of type of skim
+    '''
+
 
 
 

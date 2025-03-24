@@ -147,10 +147,10 @@ def output_path_sequence(G, to_node_id, type='node'):
             curr_link_no = G.link_preds[curr_node_no]
         # reverse the sequence
         for link_no in reversed(path):
-            yield f"{G.links[link_no].get_link_id()}-{G.links[link_no].allowed_uses}"
+            yield f"{G.links[link_no].get_link_id()}"
 
 
-def find_shortest_path(G, from_node_id, to_node_id, mode, seq_type, cost_type):
+def find_shortest_path(G, from_node_id, to_node_id, seq_type, cost_type):
     if from_node_id not in G.map_id_to_no:
         raise Exception(f'Node ID: {from_node_id} not in the network')
     if to_node_id not in G.map_id_to_no:
@@ -175,7 +175,7 @@ def find_shortest_path(G, from_node_id, to_node_id, mode, seq_type, cost_type):
         return f'path {cost_type}: {path_cost:.4f} {unit} | link path: {path}'
 
 
-def get_shortest_path(G, from_node_id, to_node_id, cost_type, mode, agents):
+def get_shortest_path(G, from_node_id, to_node_id, cost_type):
     # exceptions
     if from_node_id not in G.map_id_to_no:
         #return None
@@ -184,57 +184,20 @@ def get_shortest_path(G, from_node_id, to_node_id, cost_type, mode, agents):
         #return None
         raise Exception(f'Node ID: {to_node_id} not in the network')
     
-    '''
-    for i in range(len(agents) - 1):  # -1 removed auto added "auto" type
-        print(agents[i].name)
-        G.agent_type_name = "all"  # agents[i].name
-        mode_type = agents[i].type
-
-    # Create a placeholder list to maintain index positions
-        filtered_links = [None] * len(G.links)
-
-    # Iterate through the original links and place valid links in their original index positions
-        for j, link in enumerate(G.links):
-            if mode_type in link.allowed_uses.lower():
-                filtered_links[j] = link  # Maintain index position
-
-    # Remove None values, keeping only the valid links
-        G.links = [link for link in filtered_links if link is not None]
-    '''    
-        
-        
     single_source_shortest_path(G, from_node_id, cost_type)
     
     path_cost = G.get_path_cost(to_node_id, cost_type)
   
     if path_cost >= MAX_LABEL_COST:
-             print(9999999)
+        return 9999999
     else:
-            print(path_cost)
-    
-    
-    
-    '''
-     for i in range(len(agents)-1): # -1 removed auto added "auto" type
-        print(agents[i].name)
-        G.agent_type_name = "all" #agents[i].name
-        mode_type = agents[i].type
-        filtered_links = [links for links in G.links if mode_type in links.allowed_uses.lower()]
-        G.links = filtered_links
-    
-    print(agents[i].type) #Letter representing mode on link
-    print(len(agents)) # Total length of link
-    print(agents[i].name) #Name of type of skim
-    '''
-    
-    
-    
+       return path_cost
 
-def compute_row_distances(G, row_node, row_nodes, cost_type, mode):
-    return [get_shortest_path(G, row_node, col_node, cost_type, mode) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
+def compute_row_distances(G, row_node, row_nodes, cost_type):
+    return [get_shortest_path(G, row_node, col_node, cost_type) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
 
 
-def create_numpy_matrix_parallel(G, row_nodes, cost_type, mode):
+def create_numpy_matrix_parallel(G, row_nodes, cost_type):
     """
     Creates a shortest path distance matrix using parallel processing.
 
@@ -249,7 +212,7 @@ def create_numpy_matrix_parallel(G, row_nodes, cost_type, mode):
 
     # Use joblib with tqdm for parallel computation
     skim_matrix = Parallel(n_jobs=-1)(
-        delayed(compute_row_distances)(G, row_node, row_nodes, cost_type, mode)  # Corrected function call
+        delayed(compute_row_distances)(G, row_node, row_nodes, cost_type)  # Corrected function call
         for row_node in tqdm(row_nodes, desc="Computing shortest paths"))
     
     elapsed_time = time.time() - start_time
@@ -304,13 +267,13 @@ def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
 
     # Compute shortest path matrix in parallel
-    skim_matrix = create_numpy_matrix_parallel(G, row_nodes, cost_type, mode)
+    skim_matrix = create_numpy_matrix_parallel(G, row_nodes, cost_type)
 
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
     # Save the matrix in the requested format
-    output_path = os.path.join(output_dir, f"shortest_path_matrix_({cost_type}){output_type}")
+    output_path = os.path.join(output_dir, f"shortest_path_matrix_{cost_type}_{mode}{output_type}")
 
     if output_type == ".csv":
         save_as_csv(skim_matrix, row_nodes, output_path)
@@ -318,7 +281,8 @@ def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     elif output_type == ".zip":
         csv_filename = "shortest_path_matrix.csv"
         save_as_zip(skim_matrix, row_nodes, output_path, csv_filename)
-    
+    elif output_type == ".omx":
+        save_as_omx(skim_matrix, row_nodes, output_path)
     else:
         raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of ['.csv', '.zip'].")
 
