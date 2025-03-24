@@ -38,8 +38,10 @@ def read_nodes(input_dir,
                load_demand):
 
     """ step 1: read input_node """
-    with open(input_dir+'/node.csv', 'r') as fp:
-        print('read node.csv')
+    node_file = 'node_transit.csv' if mode == 't' else 'link.csv'
+    
+    with open(f"{input_dir}/{node_file}", 'r') as fp:
+        print(f'Reading {node_file}...')
 
         reader = csv.DictReader(fp)
         node_no = 0
@@ -126,8 +128,10 @@ def read_links(input_dir,
                speed_unit,
                load_demand):
     """ step 2: read input_link """
-    with open(input_dir+'/link.csv', 'r') as fp:
-        print('read link.csv')
+    link_file = 'link_transit.csv' if mode == 't' else 'link.csv'
+    
+    with open(f"{input_dir}/{link_file}", 'r') as fp:
+        print(f'Reading {link_file}...')
         
         reader = csv.DictReader(fp)
         link_no = 0

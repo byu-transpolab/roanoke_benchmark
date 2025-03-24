@@ -347,6 +347,7 @@ def find_path_for_agents(G, column_pool, engine_type='c'):
 def _get_path_sequence_str(G, to_node_id, seq_type):
     return ';'.join(str(x) for x in output_path_sequence(G, to_node_id, seq_type))
 
+'''
 def get_shortest_path_tree(G, from_node_id, seq_type, cost_type, integer_node_id):
     """ compute the shortest path tree from the source node (from_node_id)
 
@@ -385,7 +386,7 @@ def get_shortest_path_tree(G, from_node_id, seq_type, cost_type, integer_node_id
             )
             for to_node_id in G.map_id_to_no if to_node_id != from_node_id
         }
-
+'''
 
 def benchmark_apsp(G):
     st = time()
