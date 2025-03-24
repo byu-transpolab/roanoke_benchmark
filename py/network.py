@@ -56,7 +56,7 @@ def create_allowed_uses_column(df):
         
         # If no uses were added, assign 'cwbt'
         if not allowed_uses_value:
-            allowed_uses_value = 'cpbt'
+            allowed_uses_value = 'cpb' #We don't need t to be a part. That is handled separately.
         
         allowed_uses.append(allowed_uses_value)
     
@@ -80,7 +80,7 @@ def create_use_group_file(csv_file, output_csv):
         "c": ("car", "AUTO"),
         "p": ("pedestrian", "AUX_TRANSIT"),
         "b": ("bike", "AUX_TRANSIT"),
-        "t": ("transit", "TRANSIT")
+        #"t": ("transit", "TRANSIT") Unneeded? Transit link and nodes are seperate. 
     }
     
     # Extract unique modes by checking if c, p, b, or t appears in allowed_uses
@@ -185,7 +185,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
             'B': 'to_node_id',
             'DIR': 'directed',
             'DISTANCE': 'length',
-            'FACTYPE': 'link_type',
+            'FACTYPE': 'link_type_name',
             'CAP_R': 'capacity',
             'LANES': 'lanes',
             'BIKE_FAC': 'bike_facility',
@@ -201,7 +201,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
         # List the columns to keep (those that are renamed)
         columns_to_keep = ['link_id', 'name', 'from_node_id', 'to_node_id', 
-                           'directed', 'length', 'link_type', 'capacity', 
+                           'directed', 'length', 'link_type_name', 'capacity', 
                            'free_speed', 'lanes', 'bike_facility', 'allowed_uses', 'geometry']
         
         # Keep only the relevant columns

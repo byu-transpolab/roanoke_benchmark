@@ -10,24 +10,16 @@ agents:
 - description: AUX_TRANSIT
   flow_type: standard
   free_speed: 50.0
-  name: pedestrian
-  pce: 1.0
-  type: p
-  use_link_ffs: true
-  vot: 1.0
-- description: AUX_TRANSIT
-  flow_type: standard
-  free_speed: 50.0
   name: bike
   pce: 1.0
   type: b
   use_link_ffs: true
   vot: 1.0
-- description: TRANSIT
+- description: AUX_TRANSIT
   flow_type: standard
   free_speed: 50.0
-  name: transit
+  name: pedestrian
   pce: 1.0
-  type: t
+  type: p
   use_link_ffs: true
   vot: 1.0
