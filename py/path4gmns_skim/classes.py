@@ -940,7 +940,7 @@ class AgentType:
         self.vot = vot
         self.flow_type = flow_type
         self.pce = pce
-        self.ffs = ffs
+        self.ffs = int(ffs)
         self.use_link_ffs = use_link_ffs
 
     def get_id(self):

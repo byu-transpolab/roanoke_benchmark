@@ -263,9 +263,20 @@ def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     if output_type not in valid_types:
         raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of {valid_types}.")
     
+    print(mode.type)
     # Will compute skim for centroids only, checking the zone_id column for nonempty.
     row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
 
+    # Modify the free flow travel time of link if mode is not all or auto.
+    
+    if mode.type == "p":
+        for i in range(G.link_size):
+            G.links[i].fftt = (G.links[i].length * 5280)/mode.ffs /60
+    elif mode.type == "b":
+        for i in range(G.link_size):
+            G.links[i].fftt = G.links[i].length / mode.ffs * 60
+    
+    
     # Compute shortest path matrix in parallel
     skim_matrix = create_numpy_matrix_parallel(G, row_nodes, cost_type)
 
@@ -273,7 +284,7 @@ def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     os.makedirs(output_dir, exist_ok=True)
 
     # Save the matrix in the requested format
-    output_path = os.path.join(output_dir, f"shortest_path_matrix_{cost_type}_{mode}{output_type}")
+    output_path = os.path.join(output_dir, f"shortest_path_matrix_{cost_type}_{mode.name}{output_type}")
 
     if output_type == ".csv":
         save_as_csv(skim_matrix, row_nodes, output_path)
@@ -347,7 +358,7 @@ def find_path_for_agents(G, column_pool, engine_type='c'):
 def _get_path_sequence_str(G, to_node_id, seq_type):
     return ';'.join(str(x) for x in output_path_sequence(G, to_node_id, seq_type))
 
-'''
+
 def get_shortest_path_tree(G, from_node_id, seq_type, cost_type, integer_node_id):
     """ compute the shortest path tree from the source node (from_node_id)
 
@@ -360,7 +371,7 @@ def get_shortest_path_tree(G, from_node_id, seq_type, cost_type, integer_node_id
         raise Exception(f'Node ID: {from_node_id} not in the network')
 
     single_source_shortest_path(G, from_node_id, cost_type)
-
+    '''
     if integer_node_id:
         sp_tree = {}
         for to_node_id in G.map_id_to_no:
@@ -386,7 +397,8 @@ def get_shortest_path_tree(G, from_node_id, seq_type, cost_type, integer_node_id
             )
             for to_node_id in G.map_id_to_no if to_node_id != from_node_id
         }
-'''
+        '''
+
 
 def benchmark_apsp(G):
     st = time()

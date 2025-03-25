@@ -6,7 +6,7 @@ from .classes import Node, Link, Zone, Network, Column, ColumnVec, VDFPeriod, \
                      AgentType, DemandPeriod, Demand, SpecialEvent, Assignment, UI
 
 from .colgen import update_links_using_columns
-from .consts import EPSILON, MILE_TO_METER, MPH_TO_KPH
+from .consts import EPSILON, MILE_TO_METER, MPH_TO_KPH, PED_SPEED_CON, BIKE_SPEED_CON
 from .utils import InvalidRecord, _are_od_connected, _convert_boundaries, \
                    _convert_str_to_float, _convert_str_to_int, _get_time_stamp, \
                    _update_dest_zone, _update_orig_zone
@@ -38,10 +38,8 @@ def read_nodes(input_dir,
                load_demand):
 
     """ step 1: read input_node """
-    node_file = 'node_transit.csv' if mode == 't' else 'link.csv'
-    
-    with open(f"{input_dir}/{node_file}", 'r') as fp:
-        print(f'Reading {node_file}...')
+    with open(input_dir+'/node.csv', 'r') as fp:
+        print('read node.csv')
 
         reader = csv.DictReader(fp)
         node_no = 0
@@ -128,10 +126,8 @@ def read_links(input_dir,
                speed_unit,
                load_demand):
     """ step 2: read input_link """
-    link_file = 'link_transit.csv' if mode == 't' else 'link.csv'
-    
-    with open(f"{input_dir}/{link_file}", 'r') as fp:
-        print(f'Reading {link_file}...')
+    with open(input_dir+'/link.csv', 'r') as fp:
+        print('read link.csv')
         
         reader = csv.DictReader(fp)
         link_no = 0
@@ -298,7 +294,13 @@ def read_links(input_dir,
                     VDF_fftt = _convert_str_to_float(line[header_vdf_fftt])
                 except (KeyError, InvalidRecord):
                     # set it up using length and free_speed from link
-                    VDF_fftt = length / max(EPSILON, free_speed) * 60
+                    #Convert Length from distance to time (minutes)
+                    if mode == "all" or "c":
+                        VDF_fftt = length / max(EPSILON, free_speed) * 60 
+                    elif mode == "p":
+                        VDF_fftt = (length * 5280)/(PED_SPEED_CON * 60)
+                    elif mode == "b":
+                        VDF_fftt = length / BIKE_SPEED_CON * 60
 
                 try:
                     VDF_cap = _convert_str_to_float(line[header_vdf_cap])
@@ -616,7 +618,7 @@ def create_settings(input_dir):
                 "vot": 1.0,                 # Placeholder
                 "flow_type": "standard",    # Placeholder
                 "pce": 1.0,                 # Placeholder
-                "free_speed": 50.0,         # Placeholder
+                "free_speed": row["free_speed_constant"],   
                 "use_link_ffs": True        # Default setting
             }
             settings["agents"].append(agent)
@@ -812,10 +814,13 @@ def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= 
     assignm = Assignment()
     read_settings(input_dir, assignm) #Creates agents for Use_group file
     for i in range(len(assignm.agent_types)-1): # -1 removed auto added "auto" type
-        mode = assignm.agent_types[i].type
+        
+        mode = assignm.agent_types[i]
+        
         print("----------------")
-        print("Running skim for mode: " + assignm.agent_types[i].name)
+        print("Running skim for mode: " + mode.name)
         print("----------------")
+        
         #read_network(length_unit, speed_unit, input_dir, mode)
         len_units = ['kilometer', 'km', 'meter', 'm', 'mile', 'mi']
         spd_units = ['kmh', 'kph', 'mph']
@@ -842,7 +847,7 @@ def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= 
         read_settings(input_dir, assignm)
     
         read_nodes(input_dir,
-                mode,
+                mode.type,
                 network.nodes,
                 network.map_id_to_no,
                 network.map_no_to_id,
@@ -850,7 +855,7 @@ def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= 
                 load_demand)
 
         read_links(input_dir,
-                mode,
+                mode.type,
                 network.links,
                 network.nodes,
                 network.map_id_to_no,
@@ -861,8 +866,7 @@ def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= 
                 load_demand)
 
         network.update()
-        assignm.network = network  ######## Assigning of the network
-        mode = assignm.agent_types[i].name
+        assignm.network = network 
         UI(assignm).find_shortest_path_network(output_dir, output_type, cost_type, mode)
     
     

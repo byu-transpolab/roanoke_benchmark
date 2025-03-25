@@ -1,7 +1,7 @@
 agents:
 - description: AUTO
   flow_type: standard
-  free_speed: 50.0
+  free_speed: '60'
   name: car
   pce: 1.0
   type: c
@@ -9,7 +9,7 @@ agents:
   vot: 1.0
 - description: AUX_TRANSIT
   flow_type: standard
-  free_speed: 50.0
+  free_speed: '12'
   name: bike
   pce: 1.0
   type: b
@@ -17,7 +17,7 @@ agents:
   vot: 1.0
 - description: AUX_TRANSIT
   flow_type: standard
-  free_speed: 50.0
+  free_speed: '4'
   name: pedestrian
   pce: 1.0
   type: p

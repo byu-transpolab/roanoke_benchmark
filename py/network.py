@@ -2,6 +2,13 @@ import pandas as pd
 from simpledbf import Dbf5
 import geopandas as gpd
 import os
+import gtfs2gmns_conversion as gtfs #Conversion import
+
+#GLOBAL CONSTANTS
+AUTO_FFS_CON = 60 #Miles per Hour
+PED_FFS_CON = 4 # Feet per Second
+BIKE_FFS_CON = 12 #Miles per Hour
+UNKNOWN_FFS_CON = BIKE_FFS_CON 
 
 # Function to read a DBF file and convert it to a DataFrame
 def read_dbf(dbf_file):
@@ -72,28 +79,24 @@ def create_use_group_file(csv_file, output_csv):
         print("Error: 'allowed_uses' column not found in the input file.")
         return
     
-    # Extract unique allowed uses
-    unique_uses = df['allowed_uses'].unique()
-    
     # Define valid modes and their descriptions
     mode_info = {
-        "c": ("car", "AUTO"),
-        "p": ("pedestrian", "AUX_TRANSIT"),
-        "b": ("bike", "AUX_TRANSIT"),
-        #"t": ("transit", "TRANSIT") Unneeded? Transit link and nodes are seperate. 
+        "c": ("car", "AUTO", AUTO_FFS_CON),
+        "p": ("pedestrian", "AUX_TRANSIT", PED_FFS_CON),
+        "b": ("bike", "AUX_TRANSIT", BIKE_FFS_CON),
     }
     
-    # Extract unique modes by checking if c, p, b, or t appears in allowed_uses
+    # Extract unique modes by checking if c, p, or b appears in allowed_uses
     unique_modes = set()
     for uses in df['allowed_uses'].dropna().astype(str):
         for char in uses:  # Iterate over each character
             if char in mode_info:
-                unique_modes.add((char, mode_info[char][0], mode_info[char][1]))
+                unique_modes.add((char, mode_info[char][0], mode_info[char][1], mode_info[char][2]))
             else:
-                unique_modes.add((char, "unknown type", "aux. transit"))
+                unique_modes.add((char, "unknown", "AUX_TRANSIT", UNKNOWN_FFS_CON))  # Default values for unknown modes
 
-    # Create a DataFrame with mode, description, and type
-    use_group_df = pd.DataFrame(unique_modes, columns=['mode', 'description', 'type'])
+    # Create a DataFrame with mode, description, type, and free_speed_constant
+    use_group_df = pd.DataFrame(unique_modes, columns=['mode', 'description', 'type', 'free_speed_constant'])
 
     # Save the result to CSV
     use_group_df.to_csv(output_csv, index=False)
@@ -276,14 +279,18 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
     # Write to CSV file
     #df.to_csv(csv_file, index=False)
 
+
+
+gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
+
  
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'hwy/link.csv')
+        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'network/link.csv')
         print("Converted links 'links.dbf' to 'link.csv' successfully.")
 
-        dbfoutputs_to_csv('hwy/src/output_links.dbf', 'hwy/links_vol.csv')
+        dbfoutputs_to_csv('hwy/src/output_links.dbf', 'network/links_vol.csv')
         print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
        
         # Convert nodes DBF to CSV
@@ -291,11 +298,11 @@ if __name__ == "__main__":
         print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
 
         # Create use_group CSV
-        create_use_group_file('hwy/link.csv', 'hwy/use_group.csv')
+        create_use_group_file('network/link.csv', 'network/use_group.csv')
         
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'hwy/zones.csv', 'hwy/node.csv')
+        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'network/zones.csv', 'network/node.csv')
         print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
    
     except Exception as e:

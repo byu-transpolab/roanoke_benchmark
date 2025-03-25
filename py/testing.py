@@ -4,20 +4,20 @@ import gtfs2gmns_conversion as gtfs
 
 
 # Source Files
-input_dir = "hwy"
+input_dir = "network"
 tran_input_dir = "transit/gtfs/roanoke"
 
 # Output file and path
-output_dir = "hwy"
-tran_output_dir = "transit"
+output_dir = "skims"
+tran_output_dir = "network"
 output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
 
 cost_type = "time" # Set to the cost type for skim.
 time_period = '0000_2359'
 
 #File paths for read_network
-link_file = 'hwy/link.csv'      
-node_file = 'hwy/node.csv'
+link_file = 'network/link.csv'      
+node_file = 'network/node.csv'
 
 #gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
 

@@ -730,7 +730,7 @@ if __name__ == '__main__':
     global period_end_time
     
     input_path = 'transit/gtfs/roanoke'           # Where you are reading the gtfs data from. 
-    output_path = 'transit/'      # Where the files will be placed upon completion. 
+    output_path = 'network'      # Where the files will be placed upon completion. 
     time_period = '0000_2359'                           # The time period of the data. The code below changes the format.
     
     #time_period_id = 1
