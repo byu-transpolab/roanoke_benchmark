@@ -48,7 +48,7 @@ def create_allowed_uses_column(df):
             use_parts.append('p')
         
         # Check for BIKE_FAC column (if it has any non-null, non-empty value)
-        if 'bike_facility' in row and pd.notnull(row['bike_facility']) and row['bike_facility'] != '':
+        if 'ped_phb' in row and row['ped_phb'] == 'Y':
             use_parts.append('b')
         
         # Join the parts into a string and assign it to the allowed_uses list
