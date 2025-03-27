@@ -149,18 +149,15 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
 
     # Ensure both shapefile and DBF have the 'ID' column
-    if 'ID' in shapefile.columns and 'ID' in df.columns:
-        # Select only the 'ID' and 'geometry' columns from the shapefile
-        shapefile_geometry = shapefile[['ID', 'geometry']]
+    if {'A', 'B'}.issubset(shapefile.columns) and {'A', 'B'}.issubset(df.columns):
+        # Select only the 'A', 'B', and 'geometry' columns from the shapefile
+        shapefile_geometry = shapefile[['A', 'B', 'geometry']]
 
-        # Merge shapefile GeoDataFrame and DBF DataFrame based on 'ID'
-        merged = pd.merge(df, shapefile_geometry, on='ID', how='left')
-        
+        # Merge shapefile GeoDataFrame and DBF DataFrame based on 'A' and 'B'
+        merged = pd.merge(df, shapefile_geometry, on=['A', 'B'], how='left')
+
         # Remove duplicates
         merged = remove_duplicate_pairs(merged)
-        
-        # Renumber duplicate link IDs
-        merged = renumber_duplicate_ids(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")
