@@ -2,13 +2,14 @@ import pandas as pd
 from simpledbf import Dbf5
 import geopandas as gpd
 import os
-import gtfs2gmns_conversion as gtfs #Conversion import
+from gtfs_2_gmns import GTFS2GMNS
 
 #GLOBAL CONSTANTS
 AUTO_FFS_CON = 60 #Miles per Hour
 PED_FFS_CON = 4 # Feet per Second
 BIKE_FFS_CON = 12 #Miles per Hour
-UNKNOWN_FFS_CON = BIKE_FFS_CON 
+UNKNOWN_FFS_CON = BIKE_FFS_CON
+transit_time_period = '0000_2359' 
 
 # Function to read a DBF file and convert it to a DataFrame
 def read_dbf(dbf_file):
@@ -63,7 +64,7 @@ def create_allowed_uses_column(df):
         
         # If no uses were added, assign 'cwbt'
         if not allowed_uses_value:
-            allowed_uses_value = 'cpb' #We don't need t to be a part. That is handled separately.
+            allowed_uses_value = 'cpbt' #All possible modes of tranport
         
         allowed_uses.append(allowed_uses_value)
     
@@ -84,6 +85,7 @@ def create_use_group_file(csv_file, output_csv):
         "c": ("car", "AUTO", AUTO_FFS_CON),
         "p": ("pedestrian", "AUX_TRANSIT", PED_FFS_CON),
         "b": ("bike", "AUX_TRANSIT", BIKE_FFS_CON),
+        "t": ("transit", "TRANSIT",  AUTO_FFS_CON)
     }
     
     # Extract unique modes by checking if c, p, or b appears in allowed_uses
@@ -280,8 +282,66 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
     #df.to_csv(csv_file, index=False)
 
 
+#Create gmns for transit from gtfs source files uses gtfs2gmns
+def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_period):
+    gtfs2gmns_converter = GTFS2GMNS(
+        gtfs_input_dir=gtfs_input_dir,
+        gtfs_output_dir=network_dir,
+        time_period=transit_time_period,
+        isSaveToCSV = True )
+    # Load GTFS data
+    print("Loading GTFS data...")
+    gtfs2gmns_converter.load_gtfs()
 
-gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
+    # Generate GMNS nodes and links
+    print("Generating GMNS nodes and links...")
+    nodes, links = gtfs2gmns_converter.gen_gmns_nodes_links()
+    
+    # Generate and print access links
+    print("Generating access links...")
+    access_links = gtfs2gmns_converter.generate_access_link('network/node.csv', f"{network_dir}/node_transit.csv")
+    
+    # Combine links and access links into a single DataFrame
+    combined_links = pd.concat([links, access_links], ignore_index=True)
+    
+    #rename the columns 
+    combined_links.rename(columns={'id': 'link_id'}, inplace=True)
+    combined_links.rename(columns={'dir_flag': 'directed'}, inplace=True)
+    combined_links.rename(columns={'name': 'link_type_name'}, inplace=True)
+    
+    # Save combined links to a CSV file
+    combined_links.to_csv(f"{network_dir}/transit_and_access_links.csv", index=False)
+    print("Combined Links saved to transit_and_access_links.csv.")
+    
+    
+# Merges the link and node files for transit and hwy networks, using hyw gmns as basis.
+def merge_transit_hwy(transit_link,transit_node,hwy_link,hwy_node):
+    print("Merging transit links with network...")
+    
+    #Read the files
+    transit_link_df = pd.read_csv(transit_link)
+    transit_node_df = pd.read_csv(transit_node)
+    hwy_link_df = pd.read_csv(hwy_link)
+    hwy_node_df = pd.read_csv(hwy_node)
+
+    # Find common columns between the hwy and transit
+    link_common_columns = hwy_link_df.columns.intersection(transit_link_df.columns)
+    node_common_columns = hwy_node_df.columns.intersection(transit_node_df.columns)
+
+    # Select only the common columns from transit
+    transit_link_common_df = transit_link_df[link_common_columns]
+    transit_node_common_df = transit_node_df[node_common_columns]
+
+    # Combine the two DataFrames based on the common columns
+    combined_link_df = pd.concat([hwy_link_df, transit_link_common_df], ignore_index=True)
+    combined_node_df = pd.concat([hwy_node_df, transit_node_common_df], ignore_index=True)
+
+    # Save the combined DataFrame to a new CSV file
+    combined_link_df.to_csv('network/link.csv', index=False)
+    combined_node_df.to_csv('network/node.csv', index=False)
+
+    print("CSV files have been combined and saved to 'network/link.csv' and 'network/node.csv'.")
+
 
  
 if __name__ == "__main__":
@@ -304,7 +364,12 @@ if __name__ == "__main__":
         # Merge zones with nodes
         merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'network/zones.csv', 'network/node.csv')
         print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
-   
+        
+        #Create transit link and node files, and add them to the link and node file. 
+        process_gtfs_and_access_links(gtfs_input_dir = 'transit/src', network_dir = 'network', transit_time_period = "00:00:00_23:59:00")
+        merge_transit_hwy(transit_link = 'network/transit_and_access_links.csv',transit_node = 'network/node_transit.csv',hwy_link = 'network/link.csv',hwy_node = 'network/node.csv' )
+    
+    
     except Exception as e:
         print(f"An error occurred: {e}")
 

@@ -596,8 +596,8 @@ def _calculate_distance_from_geometry(lon1, lat1, lon2, lat2):  # WGS84 transfer
     a = math.sin(d_latitude / 2) * math.sin(d_latitude / 2) + math.cos(lat1 * math.pi / 180.0) * math.cos(
         lat2 * math.pi / 180.0) * math.sin(d_longitude / 2) * math.sin(d_longitude / 2)
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    # distance = radius * c * 1000 / 1609.34  # mile
-    distance = radius * c * 1000  # meter
+    distance = radius * c * 1000 / 1609.34  # mile
+    #distance = radius * c * 1000  # meter
     return distance
 
 
@@ -736,6 +736,3 @@ if __name__ == '__main__':
     #time_period_id = 1
     period_start_time, period_end_time = _hhmm_to_minutes(time_period)
     gtfs2gmns(input_path, output_path, time_period)
-
-
-

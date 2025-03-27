@@ -1,11 +1,11 @@
 
 import path4gmns_skim as pg
-import gtfs2gmns_conversion as gtfs
+import zArchive.gtfs2gmns_conversion as gtfs
 
 
 # Source Files
 input_dir = "network"
-tran_input_dir = "transit/gtfs/roanoke"
+tran_input_dir = "transit/src"
 
 # Output file and path
 output_dir = "skims"
@@ -19,11 +19,11 @@ time_period = '0000_2359'
 link_file = 'network/link.csv'      
 node_file = 'network/node.csv'
 
-#gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
+gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
 
 #nt =pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
-print(pg.run_skim_network('mi','mph',input_dir, output_dir, cost_type, output_type))
+#print(pg.run_skim_network('mi','mph',input_dir, output_dir, cost_type, output_type))
 
 
 

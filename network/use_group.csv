@@ -1,4 +1,5 @@
 mode,description,type,free_speed_constant
 c,car,AUTO,60
-b,bike,AUX_TRANSIT,12
+t,transit,TRANSIT,60
 p,pedestrian,AUX_TRANSIT,4
+b,bike,AUX_TRANSIT,12
