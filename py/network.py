@@ -155,12 +155,6 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
         # Merge shapefile GeoDataFrame and DBF DataFrame based on 'ID'
         merged = pd.merge(df, shapefile_geometry, on='ID', how='left')
-
-        # **Remove duplicates after geometry is added**
-        # Log duplicates found for verification
-        duplicates = merged[merged.duplicated(subset=['ID'], keep=False)]
-        if not duplicates.empty:
-            print(f"Found {len(duplicates)} duplicate rows before removal.")
         
         # Remove duplicates
         merged = remove_duplicate_pairs(merged)

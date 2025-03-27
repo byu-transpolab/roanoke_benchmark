@@ -1,4 +1,4 @@
 mode,description,type
 b,bike,AUX_TRANSIT
-c,car,AUTO
 p,pedestrian,AUX_TRANSIT
+c,car,AUTO
