@@ -143,36 +143,29 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
     df = read_dbf(dbf_file)
     shapefile = gpd.read_file(shp_file)
 
-    # Read the output_links.dbf file and merge FFSPEED column
-    output_df = read_dbf(output_dbf_file)[['ID', 'FFSPEED']]
+    # Read the output_links.dbf file and merge FFSPEED column based on A and B
+    output_df = read_dbf(output_dbf_file)[['A', 'B', 'FFSPEED']]
     output_df.rename(columns={'FFSPEED': 'free_speed'}, inplace=True)
 
-    # Merge the free_speed column into df
-    df = pd.merge(df, output_df, on='ID', how='left')
+    # Merge the free_speed column into df based on A and B
+    df = pd.merge(df, output_df, on=['A', 'B'], how='left')
 
+    # Fill missing values with 25
     df['free_speed'] = df['free_speed'].fillna(25)
     df.loc[df['free_speed'] == 0, 'free_speed'] = 25
 
 
+
     # Ensure both shapefile and DBF have the 'ID' column
-    if 'ID' in shapefile.columns and 'ID' in df.columns:
-        # Select only the 'ID' and 'geometry' columns from the shapefile
-        shapefile_geometry = shapefile[['ID', 'geometry']]
+    if {'A', 'B'}.issubset(shapefile.columns) and {'A', 'B'}.issubset(df.columns):
+        # Select only the 'A', 'B', and 'geometry' columns from the shapefile
+        shapefile_geometry = shapefile[['A', 'B', 'geometry']]
 
-        # Merge shapefile GeoDataFrame and DBF DataFrame based on 'ID'
-        merged = pd.merge(df, shapefile_geometry, on='ID', how='left')
+        # Merge shapefile GeoDataFrame and DBF DataFrame based on 'A' and 'B'
+        merged = pd.merge(df, shapefile_geometry, on=['A', 'B'], how='left')
 
-        # **Remove duplicates after geometry is added**
-        # Log duplicates found for verification
-        duplicates = merged[merged.duplicated(subset=['ID'], keep=False)]
-        if not duplicates.empty:
-            print(f"Found {len(duplicates)} duplicate rows before removal.")
-        
         # Remove duplicates
         merged = remove_duplicate_pairs(merged)
-        
-        # Renumber duplicate link IDs
-        merged = renumber_duplicate_ids(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")
