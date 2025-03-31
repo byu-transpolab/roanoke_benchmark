@@ -93,6 +93,8 @@ def create_service_boarding_links(directed_trip_route_stop_time_df: pd.DataFrame
                                   period_start_time: str,
                                   period_end_time: str,
                                   agency_num: int = 1) -> list:
+    
+    linkoffset = 100000 #How much more the link numbers will be
 
     # initialize dictionaries
     node_id_dict = dict(zip(node_df['name'], node_df['node_id']))
@@ -122,7 +124,7 @@ def create_service_boarding_links(directed_trip_route_stop_time_df: pd.DataFrame
             one_line_df = one_line_df.reset_index()
 
             for k in range(number_of_records - 1):
-                link_id = 1000000 * agency_num + number_of_route_links + 1
+                link_id = linkoffset * agency_num + number_of_route_links + 1
                 from_node_id = node_id_dict[one_line_df.iloc[k].directed_service_stop_id]
                 to_node_id = node_id_dict[one_line_df.iloc[k + 1].directed_service_stop_id]
                 facility_type = convert_route_type_to_link_type(one_line_df.iloc[k].route_type)
@@ -194,9 +196,9 @@ def create_service_boarding_links(directed_trip_route_stop_time_df: pd.DataFrame
     service_node_df = node_df[node_df.node_id != node_df.physical_node_id]
     #  select service node from node_df
     service_node_df = service_node_df.reset_index()
-    number_of_sta2route_links = 0
+    number_of_sta2route_links = 1 #To prevent overlap with service links
     for iter, row in service_node_df.iterrows():
-        link_id = agency_num * 1000000 + number_of_route_links + number_of_sta2route_links
+        link_id = agency_num * linkoffset + number_of_route_links + number_of_sta2route_links
         from_node_id = row.physical_node_id
         to_node_id = row.node_id
         facility_type = convert_route_type_to_link_type(row.route_type)
@@ -241,7 +243,7 @@ def create_service_boarding_links(directed_trip_route_stop_time_df: pd.DataFrame
         number_of_sta2route_links += 1
 
         # outbound links (boarding)
-        link_id = agency_num * 1000000 + number_of_route_links + number_of_sta2route_links
+        link_id = agency_num * linkoffset + number_of_route_links + number_of_sta2route_links
         VDF_fftt1 = 1  # (length / free_speed) * 60
         #  the time of outbound time
         link_list_outbound = [link_id, 

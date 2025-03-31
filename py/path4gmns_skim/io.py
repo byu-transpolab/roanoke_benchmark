@@ -1,6 +1,7 @@
 import csv
 import os
 import warnings
+import openmatrix as omx
 
 from .classes import Node, Link, Zone, Network, Column, ColumnVec, VDFPeriod, \
                      AgentType, DemandPeriod, Demand, SpecialEvent, Assignment, UI
@@ -145,7 +146,11 @@ def read_links(input_dir,
             # Skip the line if mode character is not in allowed_uses
             # This will create a network that has links that can only use that allowed use.
             if mode not in allowed_uses:
-                continue
+                # Allow "t" mode if "p" is in allowed_uses
+                if mode == "t" and "p" in allowed_uses:
+                    pass  # Continue processing this case, so that p links are in the transit network.
+                else:
+                    continue
             
             # link id shall be unique
             link_id = line['link_id']
@@ -813,6 +818,13 @@ def read_network(length_unit='mile', speed_unit='mph', input_dir='.', mode="all"
 def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= "time",output_type = ".omx"):
     assignm = Assignment()
     read_settings(input_dir, assignm) #Creates agents for Use_group file
+    
+    # Removes existing omx matrix 
+    omx_output_path = f"skims/shortest_path_matrix_{cost_type}.omx"
+    if output_type == ".omx" and os.path.exists(omx_output_path):
+        os.remove(omx_output_path)
+        print(f"Existing OMX file '{omx_output_path}' deleted. New one will be created")
+    
     for i in range(len(assignm.agent_types)-1): # -1 removed auto added "auto" type
         
         mode = assignm.agent_types[i]
@@ -868,7 +880,11 @@ def run_skim_network(length_unit, speed_unit, input_dir, output_dir, cost_type= 
         network.update()
         assignm.network = network 
         UI(assignm).find_shortest_path_network(output_dir, output_type, cost_type, mode)
-    
+        
+    if output_type == ".omx":
+        with omx.open_file(omx_output_path, "r") as f:
+            print(f"The following matricies were created and stored in {omx_output_path}")
+            print(f.list_matrices())
     
 
 def load_columns(ui, input_dir='.'):

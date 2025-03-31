@@ -56,13 +56,14 @@ def create_allowed_uses_column(df):
             use_parts.append('p')
         
         # Check for BIKE_FAC column (if it has any non-null, non-empty value)
-        if 'bike_facility' in row and pd.notnull(row['bike_facility']) and row['bike_facility'] != '':
+        #if 'bike_facility' in row and pd.notnull(row['bike_facility']) and row['bike_facility'] != '':
+        if 'ped_phb' in row and row['ped_phb'] == 'Y':
             use_parts.append('b')
         
         # Join the parts into a string and assign it to the allowed_uses list
         allowed_uses_value = ''.join(use_parts)
         
-        # If no uses were added, assign 'cwbt'
+        # If no uses were added, assign 'cpbt'
         if not allowed_uses_value:
             allowed_uses_value = 'cpbt' #All possible modes of tranport
         
@@ -284,6 +285,10 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
 
 #Create gmns for transit from gtfs source files uses gtfs2gmns
 def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_period):
+    if not os.path.exists(gtfs_input_dir):
+        print(f"Error: The file {gtfs_input_dir} does not exist.")
+        return
+    
     gtfs2gmns_converter = GTFS2GMNS(
         gtfs_input_dir=gtfs_input_dir,
         gtfs_output_dir=network_dir,
@@ -315,10 +320,10 @@ def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_peri
     
     
 # Merges the link and node files for transit and hwy networks, using hyw gmns as basis.
-def merge_transit_hwy(transit_link,transit_node,hwy_link,hwy_node):
+def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
     print("Merging transit links with network...")
-    
-    #Read the files
+
+    # Read the files
     transit_link_df = pd.read_csv(transit_link)
     transit_node_df = pd.read_csv(transit_node)
     hwy_link_df = pd.read_csv(hwy_link)
@@ -335,6 +340,14 @@ def merge_transit_hwy(transit_link,transit_node,hwy_link,hwy_node):
     # Combine the two DataFrames based on the common columns
     combined_link_df = pd.concat([hwy_link_df, transit_link_common_df], ignore_index=True)
     combined_node_df = pd.concat([hwy_node_df, transit_node_common_df], ignore_index=True)
+
+    # Ensure "zone_id" keeps empty values but converts valid ones to integers
+    if 'zone_id' in combined_node_df.columns:
+        combined_node_df['zone_id'] = combined_node_df['zone_id'].apply(lambda x: int(x) if pd.notna(x) and not pd.isna(x) else "")
+
+    # Ensure "is_centroid" is converted to integer, replacing NaN with 0
+    if 'is_centroid' in combined_node_df.columns:
+        combined_node_df['is_centroid'] = combined_node_df['is_centroid'].fillna(0).astype(int)
 
     # Save the combined DataFrame to a new CSV file
     combined_link_df.to_csv('network/link.csv', index=False)

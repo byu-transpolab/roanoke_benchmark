@@ -63,10 +63,10 @@ def generate_access_link(hwy_node_path: str, tran_node_path: str) -> pd.DataFram
         # Create access link
         access_links.append(
             gmns_geo.Link(
-                id = f"1{tran_node_id}", # adds a 1 in front of transit node ID number
+                id = f"{tran_node_id}", 
                 name = "bus_access_link",
                 from_node_id=tran_node_id,
-                to_node_id=hwy_node_id,
+                to_node_id=int (hwy_node_id),
                 length=distance,
                 lanes=1,
                 dir_flag = 0,

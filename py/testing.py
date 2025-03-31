@@ -1,7 +1,7 @@
 
 import path4gmns_skim as pg
-import zArchive.gtfs2gmns_conversion as gtfs
-
+import openmatrix as omx
+from datetime import datetime
 
 # Source Files
 input_dir = "network"
@@ -10,7 +10,7 @@ tran_input_dir = "transit/src"
 # Output file and path
 output_dir = "skims"
 tran_output_dir = "network"
-output_type = ".csv"  # Choose between ".csv", ".omx", or ".zip"
+output_type = ".omx"  # Choose between ".csv", ".omx"
 
 cost_type = "time" # Set to the cost type for skim.
 time_period = '0000_2359'
@@ -19,12 +19,102 @@ time_period = '0000_2359'
 link_file = 'network/link.csv'      
 node_file = 'network/node.csv'
 
-gtfs.gtfs2gmns(tran_input_dir,tran_output_dir, time_period)
+
 
 #nt =pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)
 
-#print(pg.run_skim_network('mi','mph',input_dir, output_dir, cost_type, output_type))
+print(pg.run_skim_network('mi','mph',input_dir, output_dir, cost_type, output_type))
 
+
+
+
+
+
+'''
+
+file_path = "skims/shortest_path_matrix_time.omx"
+
+with omx.open_file(file_path, "r") as f:
+    print(f.list_matrices())
+
+
+with omx.open_file(file_path, "r") as f:
+    matrix_name = f.list_matrices()[3]  # Get the first matrix name
+    matrix_data = f[matrix_name][:]  # Load matrix data
+    print(f"Matrix '{matrix_name}':\n", matrix_data)
+
+    
+with omx.open_file(file_path, "r") as f:
+    print("Attributes:", f.list_all_attributes())
+
+
+with omx.open_file(file_path, "r") as f:
+    for matrix_name in f.list_matrices():
+        print(f"Matrix: {matrix_name}")
+
+        # Get matrix object
+        matrix = f[matrix_name]
+
+        # Retrieve and print attributes
+        attributes = {key: matrix.attrs[key] for key in matrix.attrs._f_list()}
+        print(f"Attributes for '{matrix_name}':", attributes)
+'''
+    
+'''
+from gtfs_2_gmns import GTFS2GMNS
+import pandas as pd
+
+# Input and Output Directories
+gtfs_input_dir = 'transit/src'
+network_dir = 'network'
+
+hwy_node_path = 'network/node.csv'                      
+tran_node_path = f"{network_dir}/node_transit.csv"  
+
+# Time and Date Configuration
+time_period = "00:00:00_23:59:00"
+  
+
+# Create an instance of the GTFS2GMNS class
+gtfs2gmns_converter = GTFS2GMNS(
+        gtfs_input_dir=gtfs_input_dir,
+        gtfs_output_dir=network_dir,
+        time_period=time_period,
+        isSaveToCSV = True )
+
+# Load GTFS data
+print("Loading GTFS data...")
+gtfs2gmns_converter.load_gtfs()
+
+# Generate GMNS nodes and links
+print("Generating GMNS nodes and links...")
+nodes, links = gtfs2gmns_converter.gen_gmns_nodes_links()
+    
+# Generate and print access links
+print("Generating access links...")
+access_links = gtfs2gmns_converter.generate_access_link('network/node.csv', f"{network_dir}/node_transit.csv")
+
+# Save access links to a CSV file
+access_links.to_csv(f"{network_dir}/access_links.csv", index=False)
+print("Access Links saved to access_links.csv.")
+
+# Combine links and access links into a single DataFrame
+combined_links = pd.concat([links, access_links], ignore_index=True)
+    
+#rename the columns 
+combined_links.rename(columns={'id': 'link_id'}, inplace=True)
+combined_links.rename(columns={'dir_flag': 'directed'}, inplace=True)
+combined_links.rename(columns={'name': 'link_type_name'}, inplace=True)
+    
+# Save combined links to a CSV file
+combined_links.to_csv(f"{network_dir}/transit_and_access_links.csv", index=False)
+print("Combined Links saved to transit_and_access_links.csv.")
+
+
+# Save access links to a CSV file
+access_links.to_csv(f"{gtfs_output_dir}/access_links.csv", index=False)
+print("Access Links saved to access_links.csv.")
+'''
 
 
 '''

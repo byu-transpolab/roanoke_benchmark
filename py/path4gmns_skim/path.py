@@ -19,9 +19,9 @@ import numpy as np
 import time
 from joblib import Parallel, delayed
 from tqdm import tqdm
-import zipfile
 import openmatrix as omx
 import os
+from datetime import datetime
 
 
 
@@ -194,7 +194,7 @@ def get_shortest_path(G, from_node_id, to_node_id, cost_type):
        return path_cost
 
 def compute_row_distances(G, row_node, row_nodes, cost_type):
-    return [get_shortest_path(G, row_node, col_node, cost_type) for col_node in row_nodes] #[_get_path_cost(G, col_node) for col_node in nodes]
+    return [get_shortest_path(G, row_node, col_node, cost_type) for col_node in row_nodes]
 
 
 def create_numpy_matrix_parallel(G, row_nodes, cost_type):
@@ -220,17 +220,31 @@ def create_numpy_matrix_parallel(G, row_nodes, cost_type):
 
     return np.array(skim_matrix)
 
-def save_as_omx(matrix, row_nodes, output_path):
-    with omx.open_file(output_path, "w") as omx_out:
-        omx_out.create_matrix(
-            name="shortest_path_matrix",
-            obj=matrix,
-            title="Shortest Path Distance Matrix",
-            attrs={"Description": "This matrix contains the shortest path distances between nodes"},
-        )
-        omx_out.create_mapping("nodes", row_nodes)
 
-    print(f"Matrix saved as OMX file: {output_path}")
+def save_to_omx(matrix, row_nodes, output_path, matrix_name, attributes=None):
+    """
+    Saves the given matrix inside an OMX file, adding multiple matrices into the same file.
+    
+    Parameters:
+        matrix (numpy.ndarray): The matrix to be saved.
+        row_nodes (list): List of node identifiers for mapping.
+        output_path (str): Path to the OMX file.
+        matrix_name (str): Name of the matrix to store inside the OMX file.
+        attributes (dict, optional): Dictionary of attributes to store with the matrix.
+    """
+    with omx.open_file(output_path, "a") as omx_out:  # "a" (append mode) to prevent overwriting
+        omx_out[matrix_name] = matrix  # Store the matrix
+
+        # Add attributes if provided
+        if attributes:
+            for key, value in attributes.items():
+                omx_out[matrix_name].attrs[key] = value  # Assign attributes
+
+        # Add node mappings only once
+        if "nodes" not in omx_out.list_mappings():
+            omx_out.create_mapping("nodes", row_nodes)
+
+    print(f"Matrix '{matrix_name}' saved to: {output_path}")
 
 
 def save_as_csv(matrix, row_nodes, output_path):
@@ -242,24 +256,9 @@ def save_as_csv(matrix, row_nodes, output_path):
     print(f"Matrix saved to {output_path}")
 
 
-def save_as_zip(matrix, row_nodes, output_path, csv_filename):
-    csv_temp_path = output_path.replace(".zip", ".csv")
-    
-    with open(csv_temp_path, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([""] + row_nodes)  # Write header row
-        for i, row in enumerate(matrix):
-            writer.writerow([row_nodes[i]] + [f"{val:.2f}" for val in row])  # Write data rows with 2 decimal places
-    
-    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        zipf.write(csv_temp_path, csv_filename)
-    
-    os.remove(csv_temp_path)  # Clean up temp file
-    print(f"Matrix Zipfile saved to {output_path}")
-
 def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     # Check to make sure output_type is an accepted type.
-    valid_types = {".omx", ".csv", ".zip"}
+    valid_types = {".omx", ".csv"}
     if output_type not in valid_types:
         raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of {valid_types}.")
     
@@ -268,34 +267,44 @@ def find_shortest_path_network(G, output_dir, output_type, cost_type, mode):
     row_nodes = [G.nodes[i].zone_id for i in range(G.node_size) if G.nodes[i].zone_id and G.nodes[i].zone_id.strip().isdigit()]
 
     # Modify the free flow travel time of link if mode is not all or auto.
-    
     if mode.type == "p":
         for i in range(G.link_size):
-            G.links[i].fftt = (G.links[i].length * 5280)/mode.ffs /60
+            G.links[i].fftt = (G.links[i].length * 5280)/mode.ffs /60 #Convert fftt for walking
+    if mode.type == "t":
+        for i in range(G.link_size):
+            if "p" in G.links[i].allowed_uses: #Convert fftt on pedestrain links only, not transit. 
+                G.links[i].fftt = (G.links[i].length * 5280)/mode.ffs /60 
     elif mode.type == "b":
         for i in range(G.link_size):
-            G.links[i].fftt = G.links[i].length / mode.ffs * 60
+            G.links[i].fftt = G.links[i].length / mode.ffs * 60 #Convert fftt for biking
     
     
     # Compute shortest path matrix in parallel
     skim_matrix = create_numpy_matrix_parallel(G, row_nodes, cost_type)
-
+    
+    #Assign attributes to the matrix
+    matrix_attributes = {
+    "Description": f"Shortest path travel time matrix for {mode.name}",
+    "mode": mode.name,
+    "Units": "minutes",
+    "Date": datetime.now().date(),
+    "time": datetime.now().time(),
+    "Calculation_Method": "Dijkstra Algorithm "
+    }
+    
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
     # Save the matrix in the requested format
-    output_path = os.path.join(output_dir, f"shortest_path_matrix_{cost_type}_{mode.name}{output_type}")
+    output_path = os.path.join(output_dir, f"shortest_path_matrix_{cost_type}{output_type}")
 
     if output_type == ".csv":
         save_as_csv(skim_matrix, row_nodes, output_path)
     
-    elif output_type == ".zip":
-        csv_filename = "shortest_path_matrix.csv"
-        save_as_zip(skim_matrix, row_nodes, output_path, csv_filename)
     elif output_type == ".omx":
-        save_as_omx(skim_matrix, row_nodes, output_path)
+        save_to_omx(skim_matrix, row_nodes, output_path, f"{mode.name}", matrix_attributes)
     else:
-        raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of ['.csv', '.zip'].")
+        raise ValueError(f"Error: Unsupported output type '{output_type}'. Please use one of ['.csv', '.omx'].")
 
 def find_path_for_agents(G, column_pool, engine_type='c'):
     """ find and set up shortest path for each agent
