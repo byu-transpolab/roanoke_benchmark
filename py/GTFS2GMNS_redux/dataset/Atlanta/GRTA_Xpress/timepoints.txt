@@ -1,0 +1,115 @@
+timepoint_id,timepoint_code,timepoint_name,timepoint_desc,timepoint_lat,timepoint_lon,zone_id,timepoint_url,location_type,parent_station,timepoint_timezone,wheelchair_boarding
+252,Test Stop 1,"Test Stop 1",,33.611351,-84.390402,,,,,,0
+257,Test Stop 2,"Test Stop 2",,33.611959,-84.392342,,,,,,0
+258,Test Stop 3,"Test Stop 3",,33.611912,-84.389334,,,,,,0
+259,Test Stop 4,"Test Stop 4",,33.609882,-84.388700,,,,,,0
+260,Test Stop 5,"Test Stop 5",,33.609236,-84.394424,,,,,,0
+262,Test Stop 6,"Test Stop 6",,33.611138,-84.390379,,,,,,0
+295,teststop 1,"4571 Buford Hwy",,33.964878,-84.179368,,,,,,0
+297,teststop 3,"N Berkeley Lake Rd",,33.969151,-84.148140,,,,,,0
+299,teststop 5,"4571 Buford Hwy",,33.965117,-84.179379,,,,,,0
+300,TS GCT Begin,"Test Stop Gwinnett County Transit Beginning",,33.963496,-84.178186,,,,,,0
+301,TS GCT end,"Test Stop Gwinnett County Transit End",,33.963615,-84.178394,,,,,,0
+303,teststop 4,"4006 Buford Hwy",,33.976370,-84.162902,,,,,,0
+305,teststop 2,"2982 Pleasant Hill Rd",,33.978530,-84.154957,,,,,,0
+307,COBB teststop 1,"MARIETTA TRANSFER CENTER",,33.941680,-84.529480,,,,,,0
+308,COBB teststop 2,"S MARIETTA PARKWAY + FAIRGROUND STREET, PARKWAY PLAZA",,33.943043,-84.532890,,,,,,0
+309,COBB teststop 3,"FAIRGROUND ST + S MARIETTA PKWY, COBB COUNTY DEPT OF FAMILY+CHILDREN SERVICES.",,33.944134,-84.535070,,,,,,0
+310,COBB teststop 4,"FAIRGROUND STREET + PIERCE STREET",,33.949060,-84.535850,,,,,,0
+311,COBB teststop 5,"COBB PARKWAY + MARIETTA TRADE CENTER",,33.945778,-84.518060,,,,,,0
+312,901242,"17th St at Market St",,33.791329,-84.394773,,,,,,0
+313,600012,"West Peachtree St at 5th St",,33.776090,-84.387242,,,,,,0
+316,400029,"Woodstock Park and Ride",,34.081564,-84.541754,,,,,,0
+323,400110,"Baker St at Williams St",,33.762355,-84.390278,,,,,,0
+327,400506,"Thornton Rd (S) at North Blairs Bridge Rd",,33.779478,-84.607226,,,,,,0
+332,400113,"Washington St at MLK Jr Dr",,33.750313,-84.388400,,,,,,0
+333,102056,"Central Ave at Garnett St",,33.747592,-84.392123,,,,,,0
+334,400012,"Jonesboro Park and Ride",,33.524296,-84.362082,,,,,,0
+336,400208,"Arts Center MARTA Station",,33.789216,-84.387692,,,,,,0
+337,400015,"Newnan Park and Ride",,33.403708,-84.723119,,,,,,0
+339,400305,"Perimeter Center West at Perimeter Center Pkwy",,33.927487,-84.344202,,,,,,0
+340,400304,"Perimeter Center at Perimeter Center Pkwy",,33.927590,-84.344090,,,,,,0
+341,400102,"John Portman Blvd at Peachtree St",,33.760919,-84.387842,,,,,,0
+347,102060,"Central Ave at Mitchell St",,33.749430,-84.390750,,,,,,0
+351,400020,"Stockbridge Park and Ride",,33.548174,-84.278993,,,,,,0
+353,400508,"Thornton Rd at Skyview Dr",,33.781940,-84.608867,,,,,,0
+358,400306,"Perimeter Center Pkwy Office Park (N)",,33.925559,-84.345089,,,,,,0
+360,900786,"Peachtree Center Ave at Andrew Young Int'l Blvd",,33.759438,-84.385997,,,,,,0
+361,400105,"Ted Turner Dr at Mitchell St",,33.752210,-84.395785,,,,,,0
+363,400509,"Thornton Rd at Westfork Blvd",,33.792292,-84.630100,,,,,,0
+364,400013,"Mall of Georgia Park and Ride",,34.067771,-83.982602,,,,,,0
+366,400135,"Ted Turner Dr at West Peachtree Pl",,33.763835,-84.388905,,,,,,0
+373,400204,"Spring St at 5th St",,33.777026,-84.388905,,,,,,0
+374,400504,"Thornton Rd (N) at Maxham Rd",,33.789760,-84.623791,,,,,,0
+376,400001,"Acworth Park and Ride",,34.077262,-84.656460,,,,,,0
+377,210762,"Courtland St at Auburn Ave",,33.756245,-84.384356,,,,,,0
+383,400107,"Williams St at Baker St",,33.762462,-84.390664,,,,,,0
+384,600006,"Peachtree Center Ave at Auburn Ave",,33.755326,-84.386040,,,,,,0
+391,400011,"Hiram Park and Ride",,33.885265,-84.739201,,,,,,0
+392,610001,"Baker St at Peachtree St",,33.762347,-84.387038,,,,,,0
+394,400016,"Panola Rd Park and Ride",,33.702199,-84.173405,,,,,,0
+395,900725,"Peachtree St at Baker St",,33.762542,-84.387413,,,,,,0
+397,211005,"Ted Turner Dr (N) at Brotherton St",,33.748751,-84.397972,,,,,,0
+398,400507,"Thornton Rd at Oak Ridge Rd",,33.783393,-84.609768,,,,,,0
+403,400308,"Medical Center MARTA Station",,33.910562,-84.351482,,,,,,0
+404,400302,"Peachtree-Dunwoody Rd at Concourse Pkwy",,33.916887,-84.351407,,,,,,0
+407,400203,"Spring St at 17th St",,33.790321,-84.389420,,,,,,0
+412,900781,"Courtland St at Ellis St",,33.758707,-84.384313,,,,,,0
+417,400303,"Peachtree-Dunwoody Rd at Concourse Pkwy",,33.916068,-84.351139,,,,,,0
+419,102554,"Ted Turner Dr (S) at Brotherton St",,33.749189,-84.398035,,,,,,0
+421,400002,"BrandsMart Park and Ride",,33.547074,-84.285489,,,,,,0
+424,400022,"Sugarloaf Mills GRTA Park and Ride",,33.984276,-84.079485,,,,,,0
+426,210155,"Peachtree Center Ave at John Wesley Dobbs Ave",,33.756949,-84.386029,,,,,,0
+427,400310,"Dunwoody MARTA Station",,33.921365,-84.344273,,,,,,0
+429,400018,"Riverdale Park and Ride",,33.567950,-84.403474,,,,,,0
+430,400014,"McDonough Park and Ride",,33.416873,-84.181227,,,,,,0
+432,600014,"West Peachtree St after 14 St",,33.786951,-84.387714,,,,,,0
+433,400008,"Hamilton Mill Park and Ride",,34.075200,-83.921589,,,,,,0
+435,400017,"Powder Springs Park and Ride",,33.867512,-84.701564,,,,,,0
+441,901241,"17th St before Spring St",,33.791971,-84.388937,,,,,,0
+444,400307,"Perimeter Center Pkwy Office Park (S)",,33.925596,-84.345206,,,,,,0
+448,400503,"Thornton Rd (S) at Maxham Rd",,33.789376,-84.623716,,,,,,0
+455,400021,"Stone Mountain Park and Ride",,33.822415,-84.109955,,,,,,0
+473,211546,"Peachtree Center Ave at Peachtree St",,33.763523,-84.385911,,,,,,0
+484,400010,"Hewatt Rd Park and Ride",,33.839357,-84.059862,,,,,,0
+495,400101,"Ivan Allen at Alexander St",,33.764941,-84.386791,,,,,,0
+514,400200,"North Ave at Peachtree St",,33.771285,-84.385403,,,,,,0
+533,400005,"Dacula Park and Ride (Hebron Church)",,33.998767,-83.907051,,,,,,0
+619,102156,"MLK Jr Dr at Peachtree St",,33.751909,-84.391670,,,,,,0
+623,600001,"Baker St at Peachtree St",,33.762346,-84.387030,,,,,,0
+632,400502,"Thornton Rd (N) at Bankhead Hwy",,33.797560,-84.643580,,,,,,0
+717,400201,"Ponce De Leon Ave at W Peachtree St",,33.772409,-84.387619,,,,,,0
+754,400100,"Central Ave at MLK Jr Dr",,33.751016,-84.389602,,,,,,0
+755,600002,"Central Ave at Wall St",,33.752425,-84.388418,,,,,,0
+756,600007,"Civic Center MARTA Station (northbound)",,33.766499,-84.387414,,,,,,0
+758,600008,"Civic Center MARTA Station (southbound)",,33.765761,-84.387636,,,,,,0
+760,400112,"Courtland St at Gilmer St",,33.753385,-84.385553,,,,,,0
+761,400004,"Cumming Park and Ride",,34.181736,-84.142303,,,,,,0
+763,400006,"Douglas MMTC Park and Ride",,33.743237,-84.726142,,,,,,0
+765,400007,"East Conyers Park and Ride",,33.641222,-83.986899,,,,,,0
+767,600004,"Forsyth St at MLK Jr Dr",,33.752359,-84.393969,,,,,,0
+771,400009,"Hampton Park and Ride",,33.381316,-84.299131,,,,,,0
+773,600005,"John Portman Blvd at Courtland St",,33.760902,-84.384531,,,,,,0
+776,400601,"Lindbergh Center MARTA Station",,33.821361,-84.369040,,,,,,0
+778,400103,"Mitchell St at Forsyth St",,33.751731,-84.394568,,,,,,0
+779,102534,"Mitchell St at Peachtree St",,33.751005,-84.393271,,,,,,0
+780,600013,"North Ave MARTA Station",,33.772122,-84.387263,,,,,,0
+781,211644,"Peachtree St at MARTA Five Points Station",,33.753376,-84.390762,,,,,,0
+782,400215,"Peachtree St at Renaissance Pkwy",,33.768489,-84.385154,,,,,,0
+783,102028,"Pryor St at Garnett St",,33.748349,-84.393486,,,,,,0
+784,400104,"Pryor St at Mitchell St",,33.750760,-84.391590,,,,,,0
+786,400309,"Sandy Springs MARTA Station",,33.931592,-84.350765,,,,,,0
+788,400019,"Snellville Park and Ride",,33.854053,-84.014637,,,,,,0
+791,400205,"Spring St just before Linden Ave",,33.770226,-84.388960,,,,,,0
+793,60013,"Sugarloaf Mills GCT Park and Ride",,33.983528,-84.084139,,,,,,0
+795,400505,"Thornton Rd (N) at North Blairs Bridge Rd",,33.779532,-84.606890,,,,,,0
+797,400023,"Town Center/Big Shanty Park and Ride",,34.027644,-84.570422,,,,,,0
+800,400024,"Union City Park and Ride",,33.586724,-84.512376,,,,,,0
+802,400106,"Wall St at Central Ave",,33.752609,-84.388563,,,,,,0
+803,400025,"West Conyers Park and Ride (DT)",,33.685268,-84.059012,,,,,,0
+805,400028,"West Douglas Park and Ride",,33.723283,-84.773527,,,,,,0
+807,400206,"West Peachtree St at 12th St",,33.784254,-84.387771,,,,,,0
+808,600011,"West Peachtree St at Peachtree Pl",,33.780610,-84.387337,,,,,,0
+809,400026,"West Conyers Park and Ride (MT/Peri)",,33.685082,-84.056727,,,,,,0
+833,400030,"Hickory Grove Park and Ride",,34.065810,-84.610719,,,,,,0
+836,400501,"Thornton Rd (S) at Bankhead Hwy",,33.797373,-84.643698,,,,,,0

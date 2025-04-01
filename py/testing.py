@@ -1,5 +1,4 @@
-
-import path4gmns_skim as pg
+import Path4GMNS_ns.path4gmns_skim as pg
 import openmatrix as omx
 from datetime import datetime
 
@@ -10,7 +9,7 @@ tran_input_dir = "transit/src"
 # Output file and path
 output_dir = "skims"
 tran_output_dir = "network"
-output_type = ".omx"  # Choose between ".csv", ".omx"
+output_type = ".csv"  # Choose between ".csv", ".omx"
 
 cost_type = "time" # Set to the cost type for skim.
 time_period = '0000_2359'
@@ -19,6 +18,7 @@ time_period = '0000_2359'
 link_file = 'network/link.csv'      
 node_file = 'network/node.csv'
 
+#pg = path4gmns_skim
 
 
 #nt =pg.read_network(length_unit='mi', speed_unit='mph', input_dir=input_dir)

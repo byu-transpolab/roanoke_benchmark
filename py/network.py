@@ -2,7 +2,7 @@ import pandas as pd
 from simpledbf import Dbf5
 import geopandas as gpd
 import os
-from gtfs_2_gmns import GTFS2GMNS
+from GTFS2GMNS_redux.gtfs2gmns import GTFS2GMNS
 
 #GLOBAL CONSTANTS
 AUTO_FFS_CON = 60 #Miles per Hour
@@ -166,6 +166,9 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
         # Remove duplicates
         merged = remove_duplicate_pairs(merged)
+        
+        # Renumber duplicate link IDs that are acutally unique
+        merged = renumber_duplicate_ids(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")
