@@ -73,7 +73,7 @@ for _, row in links_df.iterrows():
     link = network.create_link(i_node_id=row['from_node_id'],j_node_id=row['to_node_id'],modes=row['allowed_uses'])
     link['num_lanes']=row['lanes']
     link['length']=row['length']
-    link['type'] = link_type_map.get(row['link_type'])
+    link['type'] = link_type_map.get(row['facility_type'])
 
 
 #Publish the network
