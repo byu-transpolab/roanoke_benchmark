@@ -1,0 +1,13 @@
+stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station,stop_timezone,wheelchair_boarding
+4560586,,Hurt Park,,33.7543456,-84.3855057,,,0,,,
+4560587,,Sweet Auburn Market,,33.7544070,-84.3798451,,,0,,,
+4560588,,Edgewood at Hilliard,,33.7542955,-84.3763582,,,0,,,
+4560589,,King Historic District,,33.7555577,-84.3746846,,,0,,,
+4560590,,Dobbs Plaza,,33.7555889,-84.3784075,,,0,,,
+4560591,,Auburn at Piedmont,,33.7556371,-84.3820274,,,0,,,
+4560592,,Woodruff Park,,33.7560394,-84.3881868,,,0,,,
+4560593,,Peachtree Center Station,,33.7580642,-84.3875323,,,0,,,
+4560594,,Carnegie at Spring,,33.7595003,-84.3895225,,,0,,,
+4560595,,Centennial Olympic Park,,33.7594200,-84.3919955,,,0,,,
+4560596,,Luckie at Cone,,33.7580731,-84.3904452,,,0,,,
+4560597,,Park Place,,33.7551295,-84.3882726,,,0,,,

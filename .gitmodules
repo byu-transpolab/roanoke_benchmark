@@ -1,0 +1,6 @@
+[submodule "Path4GMNS_ns"]
+	path = Path4GMNS_ns
+	url = https://github.com/cojow/Path4GMNS_ns.git
+[submodule "GTFS2GMNS_redux"]
+	path = GTFS2GMNS_redux
+	url = https://github.com/cojow/GTFS2GMNS_redux.git

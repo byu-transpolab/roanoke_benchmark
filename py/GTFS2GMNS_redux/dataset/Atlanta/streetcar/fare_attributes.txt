@@ -1,0 +1,2 @@
+fare_id,price,currency_type,payment_method,transfers,transfer_duration
+001,1.0000000,USD,1,1,

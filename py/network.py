@@ -2,6 +2,14 @@ import pandas as pd
 from simpledbf import Dbf5
 import geopandas as gpd
 import os
+from GTFS2GMNS_redux.gtfs2gmns import GTFS2GMNS
+
+#GLOBAL CONSTANTS
+AUTO_FFS_CON = 60 #Miles per Hour
+PED_FFS_CON = 4 # Feet per Second
+BIKE_FFS_CON = 12 #Miles per Hour
+UNKNOWN_FFS_CON = BIKE_FFS_CON
+transit_time_period = '0000_2359' 
 
 # Function to read a DBF file and convert it to a DataFrame
 def read_dbf(dbf_file):
@@ -48,15 +56,16 @@ def create_allowed_uses_column(df):
             use_parts.append('p')
         
         # Check for BIKE_FAC column (if it has any non-null, non-empty value)
+        #if 'bike_facility' in row and pd.notnull(row['bike_facility']) and row['bike_facility'] != '':
         if 'ped_phb' in row and row['ped_phb'] == 'Y':
             use_parts.append('b')
         
         # Join the parts into a string and assign it to the allowed_uses list
         allowed_uses_value = ''.join(use_parts)
         
-        # If no uses were added, assign 'cwbt'
+        # If no uses were added, assign 'cpbt'
         if not allowed_uses_value:
-            allowed_uses_value = 'cpb' #We don't need t to be a part. That is handled separately.
+            allowed_uses_value = 'cpbt' #All possible modes of tranport
         
         allowed_uses.append(allowed_uses_value)
     
@@ -72,28 +81,25 @@ def create_use_group_file(csv_file, output_csv):
         print("Error: 'allowed_uses' column not found in the input file.")
         return
     
-    # Extract unique allowed uses
-    unique_uses = df['allowed_uses'].unique()
-    
     # Define valid modes and their descriptions
     mode_info = {
-        "c": ("car", "AUTO"),
-        "p": ("pedestrian", "AUX_TRANSIT"),
-        "b": ("bike", "AUX_TRANSIT"),
-        #"t": ("transit", "TRANSIT") Unneeded? Transit link and nodes are seperate. 
+        "c": ("car", "AUTO", AUTO_FFS_CON),
+        "p": ("pedestrian", "AUX_TRANSIT", PED_FFS_CON),
+        "b": ("bike", "AUX_TRANSIT", BIKE_FFS_CON),
+        "t": ("transit", "TRANSIT",  AUTO_FFS_CON)
     }
     
-    # Extract unique modes by checking if c, p, b, or t appears in allowed_uses
+    # Extract unique modes by checking if c, p, or b appears in allowed_uses
     unique_modes = set()
     for uses in df['allowed_uses'].dropna().astype(str):
         for char in uses:  # Iterate over each character
             if char in mode_info:
-                unique_modes.add((char, mode_info[char][0], mode_info[char][1]))
+                unique_modes.add((char, mode_info[char][0], mode_info[char][1], mode_info[char][2]))
             else:
-                unique_modes.add((char, "unknown type", "aux. transit"))
+                unique_modes.add((char, "unknown", "AUX_TRANSIT", UNKNOWN_FFS_CON))  # Default values for unknown modes
 
-    # Create a DataFrame with mode, description, and type
-    use_group_df = pd.DataFrame(unique_modes, columns=['mode', 'description', 'type'])
+    # Create a DataFrame with mode, description, type, and free_speed_constant
+    use_group_df = pd.DataFrame(unique_modes, columns=['mode', 'description', 'type', 'free_speed_constant'])
 
     # Save the result to CSV
     use_group_df.to_csv(output_csv, index=False)
@@ -160,6 +166,9 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
         # Remove duplicates
         merged = remove_duplicate_pairs(merged)
+        
+        # Renumber duplicate link IDs that are acutally unique
+        merged = renumber_duplicate_ids(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")
@@ -269,14 +278,88 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
     # Write to CSV file
     #df.to_csv(csv_file, index=False)
 
+
+#Create gmns for transit from gtfs source files uses gtfs2gmns
+def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_period):
+    if not os.path.exists(gtfs_input_dir):
+        print(f"Error: The file {gtfs_input_dir} does not exist.")
+        return
+    
+    gtfs2gmns_converter = GTFS2GMNS(
+        gtfs_input_dir=gtfs_input_dir,
+        gtfs_output_dir=network_dir,
+        time_period=transit_time_period,
+        isSaveToCSV = True )
+    # Load GTFS data
+    print("Loading GTFS data...")
+    gtfs2gmns_converter.load_gtfs()
+
+    # Generate GMNS nodes and links
+    print("Generating GMNS nodes and links...")
+    nodes, links = gtfs2gmns_converter.gen_gmns_nodes_links()
+    
+    # Generate and print access links
+    print("Generating access links...")
+    access_links = gtfs2gmns_converter.generate_access_link('network/node.csv', f"{network_dir}/node_transit.csv")
+    
+    # Combine links and access links into a single DataFrame
+    combined_links = pd.concat([links, access_links], ignore_index=True)
+    
+    #rename the columns 
+    combined_links.rename(columns={'id': 'link_id'}, inplace=True)
+    combined_links.rename(columns={'dir_flag': 'directed'}, inplace=True)
+    combined_links.rename(columns={'name': 'link_type_name'}, inplace=True)
+    
+    # Save combined links to a CSV file
+    combined_links.to_csv(f"{network_dir}/transit_and_access_links.csv", index=False)
+    print("Combined Links saved to transit_and_access_links.csv.")
+    
+    
+# Merges the link and node files for transit and hwy networks, using hyw gmns as basis.
+def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
+    print("Merging transit links with network...")
+
+    # Read the files
+    transit_link_df = pd.read_csv(transit_link)
+    transit_node_df = pd.read_csv(transit_node)
+    hwy_link_df = pd.read_csv(hwy_link)
+    hwy_node_df = pd.read_csv(hwy_node)
+
+    # Find common columns between the hwy and transit
+    link_common_columns = hwy_link_df.columns.intersection(transit_link_df.columns)
+    node_common_columns = hwy_node_df.columns.intersection(transit_node_df.columns)
+
+    # Select only the common columns from transit
+    transit_link_common_df = transit_link_df[link_common_columns]
+    transit_node_common_df = transit_node_df[node_common_columns]
+
+    # Combine the two DataFrames based on the common columns
+    combined_link_df = pd.concat([hwy_link_df, transit_link_common_df], ignore_index=True)
+    combined_node_df = pd.concat([hwy_node_df, transit_node_common_df], ignore_index=True)
+
+    # Ensure "zone_id" keeps empty values but converts valid ones to integers
+    if 'zone_id' in combined_node_df.columns:
+        combined_node_df['zone_id'] = combined_node_df['zone_id'].apply(lambda x: int(x) if pd.notna(x) and not pd.isna(x) else "")
+
+    # Ensure "is_centroid" is converted to integer, replacing NaN with 0
+    if 'is_centroid' in combined_node_df.columns:
+        combined_node_df['is_centroid'] = combined_node_df['is_centroid'].fillna(0).astype(int)
+
+    # Save the combined DataFrame to a new CSV file
+    combined_link_df.to_csv('network/link.csv', index=False)
+    combined_node_df.to_csv('network/node.csv', index=False)
+
+    print("CSV files have been combined and saved to 'network/link.csv' and 'network/node.csv'.")
+
+
  
 if __name__ == "__main__":
     try:
         # Convert links DBF to CSV
-        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'hwy/link.csv')
+        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'network/link.csv')
         print("Converted links 'links.dbf' to 'link.csv' successfully.")
 
-        dbfoutputs_to_csv('hwy/src/output_links.dbf', 'hwy/links_vol.csv')
+        dbfoutputs_to_csv('hwy/src/output_links.dbf', 'network/links_vol.csv')
         print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
        
         # Convert nodes DBF to CSV
@@ -284,13 +367,18 @@ if __name__ == "__main__":
         print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
 
         # Create use_group CSV
-        create_use_group_file('hwy/link.csv', 'hwy/use_group.csv')
+        create_use_group_file('network/link.csv', 'network/use_group.csv')
         
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'hwy/zones.csv', 'hwy/node.csv')
+        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'network/zones.csv', 'network/node.csv')
         print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
-   
+        
+        #Create transit link and node files, and add them to the link and node file. 
+        process_gtfs_and_access_links(gtfs_input_dir = 'transit/src', network_dir = 'network', transit_time_period = "00:00:00_23:59:00")
+        merge_transit_hwy(transit_link = 'network/transit_and_access_links.csv',transit_node = 'network/node_transit.csv',hwy_link = 'network/link.csv',hwy_node = 'network/node.csv' )
+    
+    
     except Exception as e:
         print(f"An error occurred: {e}")
 
