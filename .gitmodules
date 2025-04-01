@@ -1,0 +1,6 @@
+[submodule "path4gmns"]
+	path = path4gmns
+	url = https://github.com/byu-transpolab/path4gmns.git
+[submodule "gtfs2gmns"]
+	path = gtfs2gmns
+	url = https://github.com/byu-transpolab/gtfs2gmns.git

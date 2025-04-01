@@ -1,23 +1,10 @@
-import sys
-import os
-
-# Get the absolute path of the current script's directory
-script_dir = os.path.dirname(os.path.abspath("py/network.py"))
-
-# Get the parent directory of the script (assuming the module is in the repo root)
-repo_root = os.path.dirname(script_dir)
-
-# Add the repo root to sys.path
-sys.path.append(repo_root)
-
-
 import pandas as pd
 from simpledbf import Dbf5
 import geopandas as gpd
 import os
-from GTFS2GMNS_redux.gtfs2gmns import GTFS2GMNS
-
-
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) # So that gtfs2gmns can be accessed
+from gtfs2gmns import GTFS2GMNS
 
 #GLOBAL CONSTANTS
 AUTO_FFS_CON = 60 #Miles per Hour

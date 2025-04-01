@@ -1,12 +1,7 @@
 import sys
 import os
-
-script_dir = os.path.dirname(os.path.abspath("py/testing.py"))
-repo_root = os.path.dirname(script_dir)
-sys.path.append(repo_root)
-
-
-import Path4GMNS.path4gmns_skim as pg
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) # So that gtfs2gmns can be accessed
+import path4gmns as pg
 import openmatrix as omx
 from datetime import datetime
 
