@@ -1,4 +1,4 @@
-link_id,name,from_node_id,to_node_id,directed,length,link_type_name,capacity,free_speed,lanes,bike_facility,allowed_uses,geometry
+link_id,name,from_node_id,to_node_id,directed,length,facility_type,capacity,free_speed,lanes,bike_facility,allowed_uses,geometry
 1,,1,5500,0,9e-05,centroid_connector,0,35.0,0,,cpb,"LINESTRING (-79.84201 37.269958, -79.83749 37.26817)"
 2,,2,5472,0,0.6746,centroid_connector,0,35.0,0,,cpb,"LINESTRING (-79.83997 37.25162, -79.84174 37.2613)"
 3,,3,4469,0,0.12094,centroid_connector,0,31.0,0,,cpb,"LINESTRING (-79.91477 37.36715, -79.91343 37.36576)"

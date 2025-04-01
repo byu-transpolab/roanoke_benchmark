@@ -178,7 +178,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
             'B': 'to_node_id',
             'DIR': 'directed',
             'DISTANCE': 'length',
-            'FACTYPE': 'link_type_name',
+            'FACTYPE': 'facility_type',
             'CAP_R': 'capacity',
             'LANES': 'lanes',
             'BIKE_FAC': 'bike_facility',
@@ -194,7 +194,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
 
         # List the columns to keep (those that are renamed)
         columns_to_keep = ['link_id', 'name', 'from_node_id', 'to_node_id', 
-                           'directed', 'length', 'link_type_name', 'capacity', 
+                           'directed', 'length', 'facility_type', 'capacity', 
                            'free_speed', 'lanes', 'bike_facility', 'allowed_uses', 'geometry']
         
         # Keep only the relevant columns
