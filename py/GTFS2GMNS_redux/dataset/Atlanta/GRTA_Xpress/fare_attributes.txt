@@ -1,3 +1,0 @@
-fare_id,price,currency_type,payment_method,transfers,transfer_duration
-26,3.00,USD,0,2,180
-14,4.00,USD,0,2,180

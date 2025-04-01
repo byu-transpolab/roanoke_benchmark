@@ -1,2 +1,0 @@
-feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version
-GwinnettCountyTransit,http://www.gctransit.com/,en,20210408,20211231,20210408

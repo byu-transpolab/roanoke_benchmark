@@ -1,2 +1,0 @@
-feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version
-SRTA,http://www.xpressga.com/,en,20210706,20211231,S1000072

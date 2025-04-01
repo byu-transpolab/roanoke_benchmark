@@ -1,6 +1,15 @@
-import Path4GMNS_ns.path4gmns_skim as pg
+import sys
+import os
+
+script_dir = os.path.dirname(os.path.abspath("py/testing.py"))
+repo_root = os.path.dirname(script_dir)
+sys.path.append(repo_root)
+
+
+import Path4GMNS.path4gmns_skim as pg
 import openmatrix as omx
 from datetime import datetime
+
 
 # Source Files
 input_dir = "network"
