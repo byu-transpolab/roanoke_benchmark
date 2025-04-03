@@ -13,14 +13,17 @@ BIKE_FFS_CON = 12 #Miles per Hour
 UNKNOWN_FFS_CON = BIKE_FFS_CON
 transit_time_period = '0000_2359' 
 
+
 # Function to read a DBF file and convert it to a DataFrame
 def read_dbf(dbf_file):
     dbf = Dbf5(dbf_file)
     return dbf.to_dataframe()
 
+
 # Function to save the DataFrame to CSV
 def save_to_csv(df, csv_file):
     df.to_csv(csv_file, index=False)
+
 
 # If the values in the facility_type/link_type column are integers, use this function to convert them to strings based on your data.
 def factype_to_string(factype_value):
@@ -41,6 +44,7 @@ def factype_to_string(factype_value):
         }
         return factype_dict.get(factype_value, f'unknown_type')  #_{factype_value}
     return 'Invalid FACTYPE'
+
 
 # Function to create 'allowed_uses' column based on conditions 
 def create_allowed_uses_column(df):
@@ -75,9 +79,10 @@ def create_allowed_uses_column(df):
     df['allowed_uses'] = allowed_uses
     return df
 
+
 # Function to create use group file based off the modes given in allowed uses. 
-def create_use_group_file(csv_file, output_csv):
-    df = pd.read_csv(csv_file)
+def create_use_group_file(network_link_dir, use_group_csv):
+    df = pd.read_csv(network_link_dir)
     
     if 'allowed_uses' not in df.columns:
         print("Error: 'allowed_uses' column not found in the input file.")
@@ -104,16 +109,17 @@ def create_use_group_file(csv_file, output_csv):
     use_group_df = pd.DataFrame(unique_modes, columns=['mode', 'description', 'type', 'free_speed_constant'])
 
     # Save the result to CSV
-    use_group_df.to_csv(output_csv, index=False)
-    print(f"Use group file saved to {output_csv}")
+    use_group_df.to_csv(use_group_csv, index=False)
+    print(f"Use group file saved to {use_group_csv}")
 
 
 # Function to remove duplicate rows based on the 'A' and 'B' column
 def remove_duplicate_pairs(df):
     return df.drop_duplicates(subset=['A', 'B'], keep='first')
 
+
 # Function to rename link ids that have the same number but are unique 
-def renumber_duplicate_ids(df):
+def renumber_unique_duplicate_ids(df):
     if 'ID' not in df.columns:
         print("Error: 'ID' column not found in the DataFrame.")
         return df
@@ -135,18 +141,18 @@ def renumber_duplicate_ids(df):
     return df
 
 # Function to process and convert DBF links to CSV
-def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
+def dbflinks_to_csv(dbf_link_file, link_shp_file, output_dbf_link, network_link_dir):
     # Check if the shapefile exists
-    if not os.path.exists(shp_file):
-        print(f"Error: The file {shp_file} does not exist.")
+    if not os.path.exists(link_shp_file):
+        print(f"Error: The file {link_shp_file} does not exist.")
         return
 
     # Read the DBF and shapefile
-    df = read_dbf(dbf_file)
-    shapefile = gpd.read_file(shp_file)
+    df = read_dbf(dbf_link_file)
+    shapefile = gpd.read_file(link_shp_file)
 
     # Read the output_links.dbf file and merge FFSPEED column based on A and B
-    output_df = read_dbf(output_dbf_file)[['A', 'B', 'FFSPEED']]
+    output_df = read_dbf(output_dbf_link)[['A', 'B', 'FFSPEED']]
     output_df.rename(columns={'FFSPEED': 'free_speed'}, inplace=True)
 
     # Merge the free_speed column into df based on A and B
@@ -155,8 +161,6 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
     # Fill missing values with 25
     df['free_speed'] = df['free_speed'].fillna(25)
     df.loc[df['free_speed'] == 0, 'free_speed'] = 25
-
-
 
     # Ensure both shapefile and DBF have the 'ID' column
     if {'A', 'B'}.issubset(shapefile.columns) and {'A', 'B'}.issubset(df.columns):
@@ -170,7 +174,7 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
         merged = remove_duplicate_pairs(merged)
         
         # Renumber duplicate link IDs that are acutally unique
-        merged = renumber_duplicate_ids(merged)
+        merged = renumber_unique_duplicate_ids(merged)
 
         # Log after duplicates are removed
         print(f"After duplicate removal, {len(merged)} rows remain.")
@@ -212,15 +216,15 @@ def dbflinks_to_csv(dbf_file, shp_file, output_dbf_file, csv_file):
         merged = merged[columns_to_keep]
 
         # Save the merged DataFrame to CSV
-        save_to_csv(merged, csv_file)
+        save_to_csv(merged, network_link_dir)
     else:
         print("Error: 'ID' column is missing from either the shapefile or DBF data.")
 
 
 #Convert output links file to link volume CSV file
-def dbfoutputs_to_csv(dbf_file, csv_file):
+def dbfoutputs_to_csv(output_dbf_link, link_vol):
     # Read the DBF file
-    dbf = Dbf5(dbf_file)
+    dbf = Dbf5(output_dbf_link)
     df = dbf.to_dataframe()
 
     # Define the columns you want to keep
@@ -230,26 +234,23 @@ def dbfoutputs_to_csv(dbf_file, csv_file):
     df = df[new_order]
     df.rename(columns={'ID': 'link_id', 'AM_VOL': 'mpo_vol_am', 'MD_VOL': 'mpo_vol_md', 'PM_VOL': 'mpo_vol_pm', 'NT_VOL': 'mpo_vol_nt', 'TOTAL_VOL': 'mpo_vol_total'}, inplace=True)
 
-
     # Write to CSV file
-    df.to_csv(csv_file, index=False)
-
+    df.to_csv(link_vol, index=False)
 
 
 #Only needed if the zone_id column does not exist in your nodes files
 # Function to process and convert DBF nodes to CSV
-def dbfnodes_to_csv(dbf_file, csv_file):
-    df = read_dbf(dbf_file)
-    # Rename columns for clarity
-   
+def dbfnodes_to_csv(dbf_node_file, dbf_node_csv_file):
+    df = read_dbf(dbf_node_file)
+    
     # Save to CSV
-    save_to_csv(df, csv_file)
+    save_to_csv(df, dbf_node_csv_file)
 
 
 # This is only if the zone_id column does not exist in your nodes files
 # Function to merge zones with nodes data
-def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
-    nodes_df = pd.read_csv(nodes_csv)
+def merge_zones_with_nodes(dbf_node_csv_file, zones_csv, node_csv):
+    nodes_df = pd.read_csv(dbf_node_csv_file)
     zones_df = pd.read_csv(zones_csv)
    
     # Merge based on 'ID' column and save the result
@@ -261,7 +262,8 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
     merged_df.rename(columns={'Z': 'zone_id', 'N': 'node_id', 'X': 'x_coord', 'Y': 'y_coord'}, inplace=True)
 
     # Save the result to CSV
-    save_to_csv(merged_df, output_csv)
+    save_to_csv(merged_df, node_csv)
+
 
 #Alternative: Use if the zone_id column does exist in you nodes file
 #def dbfnodes_to_csv(dbf_file, csv_file):
@@ -275,7 +277,6 @@ def merge_zones_with_nodes(nodes_csv, zones_csv, output_csv):
     # Drop columns that are not in the new order
     #df = df[new_order]
     #df.rename(columns={'Old_column_name': 'New_column_name'}, inplace=True)
-
 
     # Write to CSV file
     #df.to_csv(csv_file, index=False)
@@ -292,6 +293,7 @@ def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_peri
         gtfs_output_dir=network_dir,
         time_period=transit_time_period,
         isSaveToCSV = True )
+    
     # Load GTFS data
     print("Loading GTFS data...")
     gtfs2gmns_converter.load_gtfs()
@@ -300,17 +302,17 @@ def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_peri
     print("Generating GMNS nodes and links...")
     nodes, links = gtfs2gmns_converter.gen_gmns_nodes_links()
     
-    # Generate and print access links
+    # Generate access links
     print("Generating access links...")
     access_links = gtfs2gmns_converter.generate_access_link('network/node.csv', f"{network_dir}/node_transit.csv")
     
     # Combine links and access links into a single DataFrame
     combined_links = pd.concat([links, access_links], ignore_index=True)
     
-    #rename the columns 
+    #rename the columns to match hwy and gmns standard
     combined_links.rename(columns={'id': 'link_id'}, inplace=True)
     combined_links.rename(columns={'dir_flag': 'directed'}, inplace=True)
-    combined_links.rename(columns={'name': 'link_type_name'}, inplace=True)
+    combined_links.rename(columns={'name': 'facility_type'}, inplace=True)
     
     # Save combined links to a CSV file
     combined_links.to_csv(f"{network_dir}/transit_and_access_links.csv", index=False)
@@ -320,6 +322,8 @@ def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_peri
 # Merges the link and node files for transit and hwy networks, using hyw gmns as basis.
 def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
     print("Merging transit links with network...")
+    network_link_dir = hwy_link
+    netowrk_node_dir = hwy_node
 
     # Read the files
     transit_link_df = pd.read_csv(transit_link)
@@ -339,7 +343,7 @@ def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
     combined_link_df = pd.concat([hwy_link_df, transit_link_common_df], ignore_index=True)
     combined_node_df = pd.concat([hwy_node_df, transit_node_common_df], ignore_index=True)
 
-    # Ensure "zone_id" keeps empty values but converts valid ones to integers
+    # Ensure "zone_id" keeps empty values as smpty but converts nonempty values to integers
     if 'zone_id' in combined_node_df.columns:
         combined_node_df['zone_id'] = combined_node_df['zone_id'].apply(lambda x: int(x) if pd.notna(x) and not pd.isna(x) else "")
 
@@ -348,39 +352,76 @@ def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
         combined_node_df['is_centroid'] = combined_node_df['is_centroid'].fillna(0).astype(int)
 
     # Save the combined DataFrame to a new CSV file
-    combined_link_df.to_csv('network/link.csv', index=False)
-    combined_node_df.to_csv('network/node.csv', index=False)
+    combined_link_df.to_csv(network_link_dir, index=False)
+    combined_node_df.to_csv(netowrk_node_dir, index=False)
 
-    print("CSV files have been combined and saved to 'network/link.csv' and 'network/node.csv'.")
+    print(" ")
+    print(f"CSV files have been combined and saved to {network_link_dir} and {netowrk_node_dir}.")
 
 
- 
-if __name__ == "__main__":
+"--------------- Main Function ---------------"
+
+def create_network (hwy_src, tran_src,network_dir = 'network' ):
+    """ Creates gmns network from dbf and gtfs files. 
+
+    Args:
+        hwy_src (str): file containing hwy dbf files for network (links.dbf, nodes.dbf,links_shape.shp, output_links.dbf, nodes_from_cube.dbf )
+        tran_src (str): file containing gtfs standard .txt files
+        network_dir (str): directory for saved network. If none given, creates directory titled 'network'
+    """
+# hwy and Transit Source Files
+    
+    # Network directory files
+    network_link_dir = network_dir + '/link.csv'
+    netowrk_node_dir = network_dir + '/node.csv'
+    
     try:
+        # Create network directory is none exists. 
+        if not os.path.exists(network_dir):
+            print(f"Creating network direcotry: {network_dir}")
+            os.makedirs(network_dir)
+            
         # Convert links DBF to CSV
-        dbflinks_to_csv('hwy/src/links.dbf', 'hwy/src/links_shape.shp', 'hwy/src/output_links.dbf', 'network/link.csv')
-        print("Converted links 'links.dbf' to 'link.csv' successfully.")
+        print(" ")
+        dbflinks_to_csv(hwy_src + '/links.dbf', hwy_src + '/links_shape.shp', hwy_src + '/output_links.dbf', network_link_dir)
+        print(f"Converted links 'links.dbf' to {network_link_dir} successfully.")
 
-        dbfoutputs_to_csv('hwy/src/output_links.dbf', 'network/links_vol.csv')
+        dbfoutputs_to_csv(hwy_src + '/output_links.dbf', network_dir + '/links_vol.csv')
         print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
        
         # Convert nodes DBF to CSV
-        dbfnodes_to_csv('hwy/src/nodes_from_cube.dbf', 'hwy/src/nodes_from_cube.csv')
+        dbfnodes_to_csv(hwy_src + '/nodes_from_cube.dbf', hwy_src + '/nodes_from_cube.csv')
         print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
 
         # Create use_group CSV
-        create_use_group_file('network/link.csv', 'network/use_group.csv')
+        create_use_group_file(network_link_dir, network_dir + '/use_group.csv')
         
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes('hwy/src/nodes_from_cube.csv', 'network/zones.csv', 'network/node.csv')
-        print("Merged zones data into 'nodes_from_cube.csv' and saved to 'nodes.csv'.")
+        merge_zones_with_nodes(hwy_src + '/nodes_from_cube.csv', network_dir + '/zones.csv', netowrk_node_dir)
+        print(f"Merged zones data into 'nodes_from_cube.csv' and saved to {netowrk_node_dir}.")
+        print(" ")
         
         #Create transit link and node files, and add them to the link and node file. 
-        process_gtfs_and_access_links(gtfs_input_dir = 'transit/src', network_dir = 'network', transit_time_period = "00:00:00_23:59:00")
-        merge_transit_hwy(transit_link = 'network/transit_and_access_links.csv',transit_node = 'network/node_transit.csv',hwy_link = 'network/link.csv',hwy_node = 'network/node.csv' )
-    
-    
+        process_gtfs_and_access_links(tran_src, network_dir, transit_time_period = "00:00:00_23:59:00")
+        merge_transit_hwy(transit_link = network_dir + '/transit_and_access_links.csv',transit_node = network_dir + '/node_transit.csv',hwy_link = network_link_dir,hwy_node = netowrk_node_dir )
+        
     except Exception as e:
         print(f"An error occurred: {e}")
+    
+
+ 
+if __name__ == "__main__":
+    hwy_src = 'hwy/src'
+    tran_src ='transit/src'
+    network_dir = 'network'
+    
+    #Create gmns network using above sources.
+    create_network(hwy_src,tran_src,network_dir )
+    
+    
+    
+    
+    
+    
 
