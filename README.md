@@ -20,14 +20,14 @@ metropolitan area. The files are provided courtesy of the Virginia Department of
 and the RVTPO.
 
 The first set of files are drawn from the inputs to the travel model:
-  - A **Highway network** labeled with vehicle counts as well as the trip-based model vehicle forecasts. This is stored in `network/` as a gmns-compliant network. The source files for this network (exports from the RVTPO model) are in `hwy/src`, and are created with the `py/network.py` script.
+  - A **Highway network** labeled with vehicle counts as well as the trip-based model vehicle forecasts. This is stored in `network/` as a gmns-compliant network. The source files for this network (exports from the RVTPO model) are in `hwy/src`, and are created with the `py/network_creator.py` script.
   - A **Transit network** with accompanying ridership measures. The network is stored in `network/` as a gmns-compliant network. The source file for the GTFS routes is included in `transit/src`, and the script to convert the GTFS to GMNS is in the submodule `gtfs2gmns/`. `py/network.py` automatically adds the transit network into the highway network.
   - A topologically connected **Bicyle network**. This is included in the highway network.
   - A **Socioeconomic data** file with employment and aggregate household characteristics by TAZ, stored in `se/zones.csv`. (Work in Progress)
   - A **Traffic Analysis Zone** geojson file (Work in Progress)
 
 A second set of files are outputs of the travel model:
-  - **Travel time matrices**, saved in `skims/`, both as .omx and .csv files.
+  - **Travel time matrices**, saved in `skims/`, both as .omx and .csv files. Created using `py/network_skimmer.py`
   - **Passenger origin-destination matrices**(Work in Progress)
   - **Freight origin-destination matrices** (Work in Progress)
   - **Internal/External trip matrices** (Work in Progress)
