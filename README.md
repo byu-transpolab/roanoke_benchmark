@@ -23,14 +23,14 @@ The first set of files are drawn from the inputs to the travel model:
   - A **Highway network** labeled with vehicle counts as well as the trip-based model vehicle forecasts. This is stored in `network/` as a gmns-compliant network. The source files for this network (exports from the RVTPO model) are in `hwy/src`, and are created with the `py/network_creator.py` script.
   - A **Transit network** with accompanying ridership measures. The network is stored in `network/` as a gmns-compliant network. The source file for the GTFS routes is included in `transit/src`, and the script to convert the GTFS to GMNS is in the submodule `gtfs2gmns/`. `py/network.py` automatically adds the transit network into the highway network.
   - A topologically connected **Bicyle network**. This is included in the highway network.
-  - A **Socioeconomic data** file with employment and aggregate household characteristics by TAZ, stored in `se/zones.csv`. (Work in Progress)
-  - A **Traffic Analysis Zone** geojson file (Work in Progress)
+  - A **Socioeconomic data** file with employment and aggregate household characteristics by TAZ, stored in `se/zones.csv`. (Under Development)
+  - A **Traffic Analysis Zone** geojson file (Under Development)
 
 A second set of files are outputs of the travel model:
   - **Travel time matrices**, saved in `skims/`, both as .omx and .csv files. Created using `py/network_skimmer.py`
-  - **Passenger origin-destination matrices**(Work in Progress)
-  - **Freight origin-destination matrices** (Work in Progress)
-  - **Internal/External trip matrices** (Work in Progress)
+  - **Passenger origin-destination matrices**(Under Development)
+  - **Freight origin-destination matrices** (Under Development)
+  - **Internal/External trip matrices** (Under Development)
 
 These output files may be useful if researchers optionally wish to --- for example --- include freight
 processes in the model steps or simply include them as background traffic.
@@ -54,25 +54,59 @@ An example report is provided in this repository.
 
 
 # Applications
-These are the current processes able to be run within the container.
 
-## Converting link.dbf and node.dbf files to .cvs
-1. Open network.py and scroll to the bottom
-2. Replace **input_dbf** and **inputn_dbf**  with your DBF file paths from your input data file.
-3. Replace **output_csv** and **outputn_csv** with your desired CSV file paths
-4. Run Code. 
+## Network skims from dbf and gtfs files.
+1. Download this repository.
+2. Add hwy dbf files into the `hwy` folder. The current file are for the Roanoke benchmark
+3. Add gtfs files for the transit network in `transit`. Details on how to obtain these file is below.
+4. Run the following code displayed here and or in `py/test.py`.
 
-## Converting gtfs data to gmns
-Thanks to [the ASU transportation lab](https://github.com/asu-trans-ai-lab/GTFS2GMNS/tree/main), gtfs transit data may be converted into gmns data. 
+```
+import network_creator as nt
+import py.network_skimmer as ns
+
+#Directories
+hwy_src = 'hwy/src'     # hwy network dbf files
+tran_src ='transit/src' # Transit network gtfs files
+network_dir = 'network' # Location for saved network. 
+output_dir = "skims"
+
+# Output type
+output_type = ".omx"  # Choose between ".csv", ".omx"
+
+#Travel Time Cost Type
+cost_type = "time" # Either time or distance
+
+# Unit types
+length_unit = 'mi'
+speed_unit = "mph"
+
+# Creates gmns netowrk from dbf file in hwy and gtfs files in transit
+nt.create_network(hwy_src,tran_src, network_dir )
+
+# Creates network skims based off modes in network
+ns.skim_network(length_unit,speed_unit,network_dir,output_dir,output_type,cost_type)
+```
+
+## Network_Creator.py
+The network creator will convert dbf and gtfs formated files into gmns netowrk of link and node files. 
+
+### Converting gtfs data to gmns
+Thanks to [the ASU transportation lab](https://github.com/asu-trans-ai-lab/GTFS2GMNS/tree/main), gtfs transit data may be converted into gmns data. Network Creator handles the conversion at time of network creation. 
 
 ### Obtaining gtfs data
 Transit authorities freely offer thier routes for any who would want it. 
 Websites such as [Mobility Database](https://mobilitydatabase.org), [Transit Feeds](https://transitfeeds.com), and [Transit Land](https://www.transit.land/feeds) are good places to find this data. 
 Learn more about gtfs [here](https://gtfs.org)
 
-### Conversion Steps 
-Currently network.py converts gtfs data to gmns.
+## Network_Skimmer
+This simple python code will run the path4gmns submodule to create network skims based off of modes in the network. 
 
+## EMME_netowrk
+Creation of a EMME network from gmns data. Under Development
+
+# API
+Under Development
 
 ## Acknowledgements
 Li, P. and Zhou, X. (2024, November 26). Path4GMNS. Forked from https://github.com/jdlph/Path4GMNS
