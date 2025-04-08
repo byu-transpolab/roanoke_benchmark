@@ -108,6 +108,42 @@ Creation of a EMME network from gmns data. Under Development
 # API
 Under Development
 
+def read_dbf(dbf_file):
+def save_to_csv(df, csv_file):
+
+def factype_to_string(factype_value): # If the values in the facility_type/link_type column are integers, use this function to convert them to strings based on your data.
+
+
+Function to create use group file based off the modes given in allowed uses. 
+def create_use_group_file(network_link_dir, use_group_csv):
+
+Function to remove duplicate rows based on the 'A' and 'B' column
+def remove_duplicate_pairs(df):
+
+Function to rename link ids that have the same number but are unique 
+def renumber_unique_duplicate_ids(df):
+
+Function to process and convert DBF links to CSV
+def dbflinks_to_csv(dbf_link_file, link_shp_file, output_dbf_link, network_link_dir):
+
+Convert output links file to link volume CSV file
+def dbfoutputs_to_csv(output_dbf_link, link_vol):
+
+
+Function to process and convert DBF nodes to CSV
+def dbfnodes_to_csv(dbf_node_file, dbf_node_csv_file):
+
+Function to merge zones with nodes data
+def merge_zones_with_nodes(dbf_node_csv_file, zones_csv, node_csv):
+
+Create gmns for transit from gtfs source files uses gtfs2gmns
+def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_period):
+
+Merges the link and node files for transit and hwy networks, using hyw gmns as basis.
+def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
+
+create_network (hwy_src, tran_src,network_dir = 'network' ):
+
 ## Acknowledgements
 Li, P. and Zhou, X. (2024, November 26). Path4GMNS. Forked from https://github.com/jdlph/Path4GMNS
 Mr. Xiangyong Luo, Mrs. Fang Tang,  Dr. Xuesong Simon Zhou. gtfs2gmns. Forked from https://github.com/asu-trans-ai-lab/GTFS2GMNS.git 
