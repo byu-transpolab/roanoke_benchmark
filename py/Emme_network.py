@@ -6,9 +6,9 @@ import inro.modeller as _m
 
 # Define paths
 emme_project = r"C:\Users\kmsquire\source\EMME networks\Roanoke\Roanoke.emp"
-nodes_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\node.csv"
-links_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\link.csv"
-use_group_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\hwy\use_group.csv"
+nodes_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\network\node.csv"
+links_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\network\link.csv"
+use_group_file = r"C:\Users\kmsquire\source\repos\roanoke_benchmark\network\use_group.csv"
 
 # Start EMME session
 my_desktop = _app.start_dedicated(project=emme_project, visible=True, user_initials="KMS")
@@ -52,6 +52,9 @@ for i, row in nodes_df.iterrows():
     node['data1'] = row['zone_id']
 
 
+#Turn NaN values into a string
+links_df['facility_type'] = links_df['facility_type'].fillna('').astype(str).str.strip()
+
 #Map the link_type if it is in a string in the link.csv file
 link_type_map = {
     'interstate_principal_freeway': 1,
@@ -66,7 +69,9 @@ link_type_map = {
     'lowspeed_ramp': 10,
     'centroid_connector': 11,
     'external_station_connector': 12,
-    'unknown_type': 13}
+    'unknown_type': 13,
+    'bus': 14,
+    '': 15}
 
 #Create Links
 for _, row in links_df.iterrows():
