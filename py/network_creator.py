@@ -242,10 +242,10 @@ def dbfoutputs_to_csv(output_dbf_link, link_vol):
 # Function to process and convert DBF nodes to CSV
 #This function also converts lat long coordinates to UTM coordinates.
 def dbfnodes_to_csv(dbf_node_file, dbf_node_csv_file):
-    # Read DBF to DataFrame (assuming you already have read_dbf and save_to_csv defined)
+    # Read DBF to DataFrame
     df = read_dbf(dbf_node_file)
 
-    # Add UTM coordinates
+    # Add UTM coordinates and replace X and Y
     def get_utm_epsg(lat, lon):
         zone_number = int((lon + 180) / 6) + 1
         return f"326{zone_number:02d}" if lat >= 0 else f"327{zone_number:02d}"
@@ -255,7 +255,8 @@ def dbfnodes_to_csv(dbf_node_file, dbf_node_csv_file):
         transformer = Transformer.from_crs("epsg:4326", f"epsg:{epsg_code}", always_xy=True)
         return transformer.transform(lon, lat)
 
-    df[['UTM_E', 'UTM_N']] = df.apply(lambda row: pd.Series(convert_to_utm(row['X'], row['Y'])), axis=1)
+    # Perform conversion and overwrite X and Y with UTM coordinates
+    df[['X', 'Y']] = df.apply(lambda row: pd.Series(convert_to_utm(row['X'], row['Y'])), axis=1)
 
     # Save to CSV
     save_to_csv(df, dbf_node_csv_file)
