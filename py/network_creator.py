@@ -3,6 +3,7 @@ from simpledbf import Dbf5
 import geopandas as gpd
 import os
 import sys
+from pyproj import Transformer
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) # So that gtfs2gmns can be accessed
 from gtfs2gmns import GTFS2GMNS
 
@@ -238,11 +239,24 @@ def dbfoutputs_to_csv(output_dbf_link, link_vol):
     df.to_csv(link_vol, index=False)
 
 
-#Only needed if the zone_id column does not exist in your nodes files
 # Function to process and convert DBF nodes to CSV
+#This function also converts lat long coordinates to UTM coordinates.
 def dbfnodes_to_csv(dbf_node_file, dbf_node_csv_file):
+    # Read DBF to DataFrame (assuming you already have read_dbf and save_to_csv defined)
     df = read_dbf(dbf_node_file)
-    
+
+    # Add UTM coordinates
+    def get_utm_epsg(lat, lon):
+        zone_number = int((lon + 180) / 6) + 1
+        return f"326{zone_number:02d}" if lat >= 0 else f"327{zone_number:02d}"
+
+    def convert_to_utm(lat, lon):
+        epsg_code = get_utm_epsg(lat, lon)
+        transformer = Transformer.from_crs("epsg:4326", f"epsg:{epsg_code}", always_xy=True)
+        return transformer.transform(lon, lat)
+
+    df[['UTM_E', 'UTM_N']] = df.apply(lambda row: pd.Series(convert_to_utm(row['X'], row['Y'])), axis=1)
+
     # Save to CSV
     save_to_csv(df, dbf_node_csv_file)
 
