@@ -11,7 +11,7 @@ def skim_network(length_unit,speed_unit,network_dir, output_dir, output_type, co
     Args:
         length_unit(str): 'mile' or 'km' (km currently not supported)
         speed_unit (str): 'mph' or 'kph' ('kph' currently not supported)
-        network_dir (str): File path to gmns network files
+        network_dir (str): File path to gmns network files. ex 'network/roanoke/hwy'
         output_dir (str): File path to desired location for skims
         output_type (str): '.omx' or '.csv'. omx files are saved as one file. csv are saved seperatly.
         cost_type (str): 'time' or 'distance' (distance currently not supported)

@@ -4,14 +4,13 @@ import geopandas as gpd
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) # So that gtfs2gmns can be accessed
-from gtfs2gmns import GTFS2GMNS
+from GTFS2GMNSII import gtfs2gmns, generate_access_links
 
 #GLOBAL CONSTANTS
 AUTO_FFS_CON = 60 #Miles per Hour
 PED_FFS_CON = 4 # Feet per Second
 BIKE_FFS_CON = 12 #Miles per Hour
-UNKNOWN_FFS_CON = BIKE_FFS_CON
-transit_time_period = '0000_2359' 
+UNKNOWN_FFS_CON = BIKE_FFS_CON 
 
 
 # Function to read a DBF file and convert it to a DataFrame
@@ -288,23 +287,14 @@ def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_peri
         print(f"Error: The file {gtfs_input_dir} does not exist.")
         return
     
-    gtfs2gmns_converter = GTFS2GMNS(
-        gtfs_input_dir=gtfs_input_dir,
-        gtfs_output_dir=network_dir,
-        time_period=transit_time_period,
-        isSaveToCSV = True )
+    transit_dir = f"{network_dir}/transit"
     
-    # Load GTFS data
-    print("Loading GTFS data...")
-    gtfs2gmns_converter.load_gtfs()
-
-    # Generate GMNS nodes and links
     print("Generating GMNS nodes and links...")
-    nodes, links = gtfs2gmns_converter.gen_gmns_nodes_links()
+    links = gtfs2gmns.gtfs2gmns(gtfs_input_dir, transit_dir, transit_time_period)
     
     # Generate access links
     print("Generating access links...")
-    access_links = gtfs2gmns_converter.generate_access_link('network/node.csv', f"{network_dir}/node_transit.csv")
+    access_links = generate_access_links.generate_access_link(f"{network_dir}/hwy/node.csv", f"{transit_dir}/node_transit.csv")
     
     # Combine links and access links into a single DataFrame
     combined_links = pd.concat([links, access_links], ignore_index=True)
@@ -315,15 +305,13 @@ def process_gtfs_and_access_links(gtfs_input_dir, network_dir, transit_time_peri
     combined_links.rename(columns={'name': 'facility_type'}, inplace=True)
     
     # Save combined links to a CSV file
-    combined_links.to_csv(f"{network_dir}/transit_and_access_links.csv", index=False)
+    combined_links.to_csv(f"{transit_dir}/transit_and_access_links.csv", index=False)
     print("Combined Links saved to transit_and_access_links.csv.")
     
     
-# Merges the link and node files for transit and hwy networks, using hyw gmns as basis.
-def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
+# Merges the link and node files for transit network, using hyw gmns as basis.
+def merge_transit_hwy(transit_dir, transit_link, transit_node, hwy_link, hwy_node):
     print("Merging transit links with network...")
-    network_link_dir = hwy_link
-    netowrk_node_dir = hwy_node
 
     # Read the files
     transit_link_df = pd.read_csv(transit_link)
@@ -352,59 +340,70 @@ def merge_transit_hwy(transit_link, transit_node, hwy_link, hwy_node):
         combined_node_df['is_centroid'] = combined_node_df['is_centroid'].fillna(0).astype(int)
 
     # Save the combined DataFrame to a new CSV file
-    combined_link_df.to_csv(network_link_dir, index=False)
-    combined_node_df.to_csv(netowrk_node_dir, index=False)
+    combined_link_df.to_csv(f"{transit_dir}/link.csv", index=False)
+    combined_node_df.to_csv(f"{transit_dir}/node.csv", index=False)
 
     print(" ")
-    print(f"CSV files have been combined and saved to {network_link_dir} and {netowrk_node_dir}.")
+    print(f"CSV files have been combined and saved to {transit_dir}.")
 
 
 "--------------- Main Function ---------------"
 
-def create_network (hwy_src, tran_src,network_dir = 'network' ):
+def create_network (source, network_dir = 'network/my_network' ):
     """ Creates gmns network from dbf and gtfs files. 
 
     Args:
-        hwy_src (str): file containing hwy dbf files for network (links.dbf, nodes.dbf,links_shape.shp, output_links.dbf, nodes_from_cube.dbf )
-        tran_src (str): file containing gtfs standard .txt files
-        network_dir (str): directory for saved network. If none given, creates directory titled 'network'
+        source (str): file containing a 'hwy' file with dbf files for network (links.dbf, nodes.dbf, links_shape.shp, output_links.dbf, nodes_from_cube.dbf )
+                        and a 'transit' file containing gtfs standard .txt files
+        network_dir (str): directory for saved network, split into two files labled "hwy" and "transit". If none given, creates directory titled 'network'
     """
 # hwy and Transit Source Files
     
     # Network directory files
-    network_link_dir = network_dir + '/link.csv'
-    netowrk_node_dir = network_dir + '/node.csv'
+    hwy_src = f"{source}/hwy"
+    nt_hwy_dir = f"{network_dir}/hwy"
+    tran_src = f"{source}/transit"
+    nt_transit_dir = f"{network_dir}/transit"
     
     try:
         # Create network directory is none exists. 
         if not os.path.exists(network_dir):
-            print(f"Creating network direcotry: {network_dir}")
-            os.makedirs(network_dir)
+            print(f"Creating network directory: {network_dir}")
+            os.makedirs(os.path.join(network_dir, 'hwy'))
+            os.makedirs(os.path.join(network_dir, 'transit'))
             
         # Convert links DBF to CSV
         print(" ")
-        dbflinks_to_csv(hwy_src + '/links.dbf', hwy_src + '/links_shape.shp', hwy_src + '/output_links.dbf', network_link_dir)
-        print(f"Converted links 'links.dbf' to {network_link_dir} successfully.")
+        dbflinks_to_csv(f"{hwy_src}/links.dbf", f"{hwy_src}/links_shape.shp", f"{hwy_src}/output_links.dbf", f"{nt_hwy_dir}/link.csv")
+        print(f"Converted links 'links.dbf' to link.csv successfully.")
 
-        dbfoutputs_to_csv(hwy_src + '/output_links.dbf', network_dir + '/links_vol.csv')
+        dbfoutputs_to_csv(f"{hwy_src}/output_links.dbf", f"{nt_hwy_dir}/links_vol.csv")
         print("Converted links 'outputs_links.dbf' to 'links_vol.csv' successfully.")
        
         # Convert nodes DBF to CSV
-        dbfnodes_to_csv(hwy_src + '/nodes_from_cube.dbf', hwy_src + '/nodes_from_cube.csv')
+        dbfnodes_to_csv(f"{hwy_src}/nodes_from_cube.dbf", f"{hwy_src}/nodes_from_cube.csv")
         print("Converted nodes 'nodes_from_cube.dbf' to 'nodes_from_cube.csv' successfully.")
 
         # Create use_group CSV
-        create_use_group_file(network_link_dir, network_dir + '/use_group.csv')
+        create_use_group_file(f"{nt_hwy_dir}/link.csv", f"{network_dir}/use_group.csv") # Duplicate and move into both hwy and transit?
         
         #Only need if zone_id column did not previously exist in your nodes files
         # Merge zones with nodes
-        merge_zones_with_nodes(hwy_src + '/nodes_from_cube.csv', network_dir + '/zones.csv', netowrk_node_dir)
-        print(f"Merged zones data into 'nodes_from_cube.csv' and saved to {netowrk_node_dir}.")
+        merge_zones_with_nodes(f"{hwy_src}/nodes_from_cube.csv", f"{nt_hwy_dir}/zones.csv", f"{nt_hwy_dir}/node.csv")
+        print(f"Merged zones data into 'nodes_from_cube.csv' and saved to node.csv.")
         print(" ")
         
+        
         #Create transit link and node files, and add them to the link and node file. 
-        process_gtfs_and_access_links(tran_src, network_dir, transit_time_period = "00:00:00_23:59:00")
-        merge_transit_hwy(transit_link = network_dir + '/transit_and_access_links.csv',transit_node = network_dir + '/node_transit.csv',hwy_link = network_link_dir,hwy_node = netowrk_node_dir )
+        process_gtfs_and_access_links(tran_src, 
+                                      network_dir, 
+                                      transit_time_period = '0000_2359')
+        
+        merge_transit_hwy(transit_dir = nt_transit_dir,
+                          transit_link = f"{nt_transit_dir}/transit_and_access_links.csv" ,
+                          transit_node = f"{nt_transit_dir}/node_transit.csv",
+                          hwy_link = f"{nt_hwy_dir}/link.csv",
+                          hwy_node = f"{nt_hwy_dir}/node.csv" )
         
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -412,12 +411,13 @@ def create_network (hwy_src, tran_src,network_dir = 'network' ):
 
  
 if __name__ == "__main__":
-    hwy_src = 'hwy/src'
-    tran_src ='transit/src'
-    network_dir = 'network'
+    source = 'src/roanoke'
+    #hwy_src = 'hwy/src'
+    #tran_src ='transit/src'
+    network_dir = 'network/Roanoke'
     
     #Create gmns network using above sources.
-    create_network(hwy_src,tran_src,network_dir )
+    create_network(source,network_dir )
     
     
     
