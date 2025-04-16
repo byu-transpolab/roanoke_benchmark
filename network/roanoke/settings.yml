@@ -1,4 +1,12 @@
 agents:
+- description: AUX_TRANSIT
+  flow_type: standard
+  free_speed: '12'
+  name: bike
+  pce: 1.0
+  type: b
+  use_link_ffs: true
+  vot: 1.0
 - description: AUTO
   flow_type: standard
   free_speed: '60'
@@ -21,13 +29,5 @@ agents:
   name: pedestrian
   pce: 1.0
   type: p
-  use_link_ffs: true
-  vot: 1.0
-- description: AUX_TRANSIT
-  flow_type: standard
-  free_speed: '12'
-  name: bike
-  pce: 1.0
-  type: b
   use_link_ffs: true
   vot: 1.0
