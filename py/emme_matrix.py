@@ -31,7 +31,7 @@ emmebank = my_modeller.emmebank
 zones = my_scenario.zone_numbers
 
 
-def create_network(links_file, nodes_file, use_group_file):
+def create_network(links_file, nodes_file, use_group_file, mode = "na"):
     start_time = time.time()
     # Load CSV data
     nodes_df = pd.read_csv(nodes_file)
@@ -54,9 +54,8 @@ def create_network(links_file, nodes_file, use_group_file):
 
     #Create Modes table
     for _, row in modes_df.iterrows():
-        mode = network.create_mode(id=row['mode'], type=row['type'])
-        mode['description'] = row['description']  # Set description separately
-
+        mode_create = network.create_mode(id=row['mode'], type=row['type'])
+        mode_create['description'] = row['description']  # Set description separately
 
     #Create Nodes
     for i, row in nodes_df.iterrows():
@@ -64,6 +63,7 @@ def create_network(links_file, nodes_file, use_group_file):
         node['x'] = row['x_coord']
         node['y'] = row['y_coord']
         node['data1'] = row['zone_id']
+
 
 
     #Turn NaN values into a string
@@ -93,11 +93,33 @@ def create_network(links_file, nodes_file, use_group_file):
         link['num_lanes']=row['lanes']
         link['length']=row['length']
         link['type'] = link_type_map.get(row['facility_type'])
-        link['data1'] = (row['length'] / row['free_speed'])* 60  #calculates fftt for imperial units
 
+
+        # Sets fftt based off speed constant in use_group file and mode.
+        free_speed_constant = modes_df[modes_df["mode"] == mode].iloc[0]["free_speed_constant"] # Obtains free_speed_constant from Use_group file
+
+        if mode == "c" or "na": #Default is car
+            link['data1'] = (row['length'] / row['free_speed'])* 60  #calculates fftt for imperial units
+
+        elif mode == "p": # When mode id pedestrain
+            link['data1'] = (row['length']*5280) / free_speed_constant / 60 # If the constant is given in ft/sec
+
+        elif mode == "t": # When mode is transit
+            if "p" in row['allowed_uses']: # Change pedestrian links to pedestrain speeds
+                link['data1'] = (row['length']*5280) / free_speed_constant / 60 
+            else: # Set transit speeds. From gtfs2gmns conversions, transit speed is stored in free_speed natively.
+                link['data1'] = (row['length'] / row['free_speed'])* 60
+
+        elif mode == "b": # When mode is bike
+            link['data1'] = row['length'] / free_speed_constant * 60 # If the constant is in mph
+
+        else: # If mode is not accounted for above.
+            print(f"{mode} mode not accounted for in code. Using speed for car.")
+            link['data1'] = (row['length'] / row['free_speed'])* 60
 
     #Publish the network
     my_scenario.publish_network(network)
+    
     print ("Network succesfully imported!")
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -169,7 +191,7 @@ def network_skim(network, zones, link_costs, emme_matrix_id, excluded_links, id_
         total_links = 0
         for link in network.links():
             total_links += 1
-        print(total_links)
+        #print(total_links)
 
 
         network_tree = network.shortest_path_tree(origin, link_costs, excluded_links ) # Excluded links is not doing what it's suppose to. Wrong format???? The function ignores it.
@@ -237,7 +259,7 @@ def network_skim_by_modes(network, zones, link_costs, emme_matrix_id):
         #print(excluded_links[mode])
         ex_links = excluded_links[mode]
         id_mode = mode.id
-        create_network(links_file, nodes_file, use_group_file)
+        create_network(links_file, nodes_file, use_group_file,  id_mode)
         network_skim(network, zones, link_costs, emme_matrix_id, ex_links, id_mode)
 
 if __name__ == "__main__":
